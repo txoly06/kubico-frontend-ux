@@ -5,7 +5,7 @@ import Footer from '@/components/layout/Footer';
 import PropertyValuationForm, { ValuationFormData } from '@/components/ui/PropertyValuationForm';
 import PropertyValuationResult from '@/components/ui/PropertyValuationResult';
 import { Button } from '@/components/ui/button';
-import { ChartLineUp, Home, TrendingUp, CheckCircle, PenLine } from 'lucide-react';
+import { BarChart3, Home, TrendingUp, CheckCircle, PenLine } from 'lucide-react';
 
 const PropertyValuation = () => {
   const [showResult, setShowResult] = useState(false);
@@ -94,7 +94,7 @@ const PropertyValuation = () => {
                       
                       <div className="flex gap-3">
                         <div className="flex-shrink-0 w-10 h-10 rounded-full bg-kubico-blue/10 flex items-center justify-center">
-                          <ChartLineUp className="h-5 w-5 text-kubico-blue" />
+                          <BarChart3 className="h-5 w-5 text-kubico-blue" />
                         </div>
                         <div>
                           <h4 className="font-medium">Processamento dos dados</h4>

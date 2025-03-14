@@ -68,7 +68,7 @@ const PropertyValuationForm: React.FC<PropertyValuationFormProps> = ({ onComplet
       setFormData(prev => ({
         ...prev,
         [category]: {
-          ...prev[category as keyof typeof prev],
+          ...prev[category as keyof typeof prev] as Record<string, unknown>,
           [field]: value
         }
       }));
