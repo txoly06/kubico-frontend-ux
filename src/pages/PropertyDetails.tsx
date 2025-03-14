@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ArrowLeft, Bed, Bath, SquareCode, MapPin, Heart, Share, Home, Calendar, Ruler, LineChart } from 'lucide-react';
+import { ArrowLeft, Bed, Bath, SquareCode, MapPin, Heart, Share, Home, Calendar, Ruler, LineChart, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -18,7 +17,6 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 import PropertyContactForm from '@/components/ui/PropertyContactForm';
 import { cn } from '@/lib/utils';
 
-// Exemplo de dados da propriedade (em uma aplicação real, viriam de uma API)
 const propertyData = {
   id: '1',
   title: 'Apartamento de Luxo com Vista para o Mar',

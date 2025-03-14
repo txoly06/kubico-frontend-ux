@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, Edit, Trash, Search, Plus, Filter, Grid3X3, List, MoreHorizontal } from 'lucide-react';
+import { Eye, Edit, Trash, Search, Plus, Filter, Grid3X3, List, MoreHorizontal, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +16,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from "@/hooks/use-toast";
 import { cn } from '@/lib/utils';
 
-// Dados de exemplo dos imóveis
 const propertiesData = [
   {
     id: '1',
@@ -61,7 +59,6 @@ const DashboardPropertiesList = () => {
   const [properties, setProperties] = useState(propertiesData);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Função para formatar valores monetários
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
       style: 'currency',
@@ -69,7 +66,6 @@ const DashboardPropertiesList = () => {
     });
   };
   
-  // Função para excluir um imóvel
   const handleDeleteProperty = (id: string) => {
     setProperties(properties.filter(property => property.id !== id));
     toast({
@@ -78,7 +74,6 @@ const DashboardPropertiesList = () => {
     });
   };
   
-  // Função para destacar um imóvel
   const handleToggleFeature = (id: string) => {
     setProperties(properties.map(property => 
       property.id === id 
@@ -97,7 +92,6 @@ const DashboardPropertiesList = () => {
   
   return (
     <div>
-      {/* Barra de ações */}
       <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="relative w-full md:w-80">
@@ -149,7 +143,6 @@ const DashboardPropertiesList = () => {
         </div>
       </div>
       
-      {/* Lista de imóveis - visualização em grade */}
       {viewMode === 'grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {properties.map((property) => (
@@ -191,7 +184,7 @@ const DashboardPropertiesList = () => {
                           </>
                         ) : (
                           <>
-                            <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                               <path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27Z" fill="currentColor" />
                             </svg>
                             <span>Destacar</span>
@@ -269,7 +262,6 @@ const DashboardPropertiesList = () => {
         </div>
       )}
       
-      {/* Lista de imóveis - visualização em lista */}
       {viewMode === 'list' && (
         <div className="space-y-4">
           {properties.map((property) => (
@@ -358,7 +350,6 @@ const DashboardPropertiesList = () => {
         </div>
       )}
       
-      {/* Mensagem para quando não há imóveis */}
       {properties.length === 0 && (
         <div className="bg-white border border-gray-100 rounded-xl p-8 shadow-sm text-center">
           <div className="mx-auto w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
