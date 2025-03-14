@@ -11,6 +11,7 @@ import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import Contracts from "./pages/Contracts";
 import PropertyValuation from "./pages/PropertyValuation";
+import Messages from "./pages/Messages";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/contracts" element={<Contracts />} />
           <Route path="/valuation" element={<PropertyValuation />} />
+          <Route path="/messages" element={<Messages />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
