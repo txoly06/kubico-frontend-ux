@@ -1,323 +1,280 @@
 
-import React, { useState } from 'react';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
-import { Card } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import ChatSidebar from '@/components/ui/ChatSidebar';
 import ChatWindow from '@/components/ui/ChatWindow';
-import { useToast } from '@/hooks/use-toast';
 
-// Dados simulados para os contatos
-const MOCK_CONTACTS = [
+// Sample data
+interface Contact {
+  id: string;
+  name: string;
+  avatar: string;
+  role: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unread: number;
+  online: boolean;
+  lastSeen?: string;
+}
+
+interface Message {
+  id: string;
+  content: string;
+  sender: 'user' | 'contact';
+  timestamp: Date;
+  status: 'sent' | 'delivered' | 'read';
+}
+
+const CONTACTS: Contact[] = [
   {
     id: '1',
-    name: 'Ana Silveira',
-    avatar: '/placeholder.svg',
+    name: 'Maria Silva',
+    avatar: 'https://randomuser.me/api/portraits/women/12.jpg',
     role: 'Corretora',
-    lastMessage: 'Podemos agendar uma visita para amanhã?',
-    lastMessageTime: '10:30',
-    unread: 2,
+    lastMessage: 'Podemos marcar uma visita no final da semana?',
+    lastMessageTime: '10:42',
+    unread: 1,
     online: true,
   },
   {
     id: '2',
-    name: 'Carlos Mendes',
-    avatar: '/placeholder.svg',
-    role: 'Proprietário',
-    lastMessage: 'O imóvel já está disponível para visitação',
-    lastMessageTime: '09:15',
+    name: 'João Oliveira',
+    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
+    role: 'Cliente',
+    lastMessage: 'Obrigado pelas informações sobre o imóvel',
+    lastMessageTime: 'Ontem',
+    unread: 0,
+    online: false,
+    lastSeen: 'há 3 horas',
+  },
+  {
+    id: '3',
+    name: 'Ana Carvalho',
+    avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+    role: 'Proprietária',
+    lastMessage: 'Quando podemos agendar a avaliação?',
+    lastMessageTime: 'Ontem',
     unread: 0,
     online: true,
   },
   {
-    id: '3',
-    name: 'Mariana Costa',
-    avatar: '/placeholder.svg',
-    role: 'Interessada',
-    lastMessage: 'Gostaria de mais informações sobre o apartamento',
-    lastMessageTime: 'Ontem',
+    id: '4',
+    name: 'Carlos Santos',
+    avatar: 'https://randomuser.me/api/portraits/men/67.jpg',
+    role: 'Arquiteto',
+    lastMessage: 'Estou disponível para avaliar a reforma',
+    lastMessageTime: 'Seg',
     unread: 0,
     online: false,
-  },
-  {
-    id: '4',
-    name: 'Paulo Rodrigues',
-    avatar: '/placeholder.svg',
-    role: 'Corretor',
-    lastMessage: 'Enviando os detalhes do condomínio conforme solicitado',
-    lastMessageTime: 'Ontem',
-    unread: 1,
-    online: false,
+    lastSeen: 'há 1 dia',
   },
   {
     id: '5',
-    name: 'Julia Martins',
-    avatar: '/placeholder.svg',
-    role: 'Administradora',
-    lastMessage: 'Os documentos foram aprovados!',
-    lastMessageTime: '23/05',
+    name: 'Fernanda Lima',
+    avatar: 'https://randomuser.me/api/portraits/women/22.jpg',
+    role: 'Advogada Imobiliária',
+    lastMessage: 'Enviei o contrato por email',
+    lastMessageTime: 'Dom',
     unread: 0,
     online: false,
+    lastSeen: 'há 5 dias',
   },
 ];
 
-// Dados simulados para as conversas
-const MOCK_CONVERSATIONS = {
-  '1': [
-    {
-      id: 'm1',
-      sender: '1',
-      text: 'Olá! Estou interessada em mostrar o apartamento na Av. Paulista para você.',
-      time: '10:15',
-      isRead: true,
-    },
-    {
-      id: 'm2',
-      sender: 'user',
-      text: 'Olá Ana! Seria ótimo. Quando podemos fazer isso?',
-      time: '10:20',
-      isRead: true,
-    },
-    {
-      id: 'm3',
-      sender: '1',
-      text: 'Podemos agendar uma visita para amanhã?',
-      time: '10:30',
-      isRead: false,
-    },
-  ],
-  '2': [
-    {
-      id: 'm1',
-      sender: '2',
-      text: 'Bom dia! Sou o proprietário do imóvel que você demonstrou interesse.',
-      time: '09:00',
-      isRead: true,
-    },
-    {
-      id: 'm2',
-      sender: 'user',
-      text: 'Bom dia Carlos! O imóvel já está disponível para visitação?',
-      time: '09:10',
-      isRead: true,
-    },
-    {
-      id: 'm3',
-      sender: '2',
-      text: 'O imóvel já está disponível para visitação',
-      time: '09:15',
-      isRead: true,
-    },
-  ],
-  '3': [
-    {
-      id: 'm1',
-      sender: 'user',
-      text: 'Olá Mariana, vi que você está interessada no apartamento do Centro',
-      time: 'Ontem 15:30',
-      isRead: true,
-    },
-    {
-      id: 'm2',
-      sender: '3',
-      text: 'Gostaria de mais informações sobre o apartamento',
-      time: 'Ontem 16:45',
-      isRead: true,
-    },
-  ],
-  '4': [
-    {
-      id: 'm1',
-      sender: '4',
-      text: 'Olá, aqui é o Paulo da Kubico Imóveis',
-      time: 'Ontem 14:20',
-      isRead: true,
-    },
-    {
-      id: 'm2',
-      sender: 'user',
-      text: 'Oi Paulo, poderia me enviar mais detalhes sobre o condomínio?',
-      time: 'Ontem 14:30',
-      isRead: true,
-    },
-    {
-      id: 'm3',
-      sender: '4',
-      text: 'Enviando os detalhes do condomínio conforme solicitado',
-      time: 'Ontem 14:45',
-      isRead: false,
-    },
-  ],
-  '5': [
-    {
-      id: 'm1',
-      sender: '5',
-      text: 'Recebemos seus documentos para análise',
-      time: '23/05 09:00',
-      isRead: true,
-    },
-    {
-      id: 'm2',
-      sender: 'user',
-      text: 'Obrigado Julia. Quando terei um retorno?',
-      time: '23/05 09:15',
-      isRead: true,
-    },
-    {
-      id: 'm3',
-      sender: '5',
-      text: 'Os documentos foram aprovados!',
-      time: '23/05 12:30',
-      isRead: true,
-    },
-  ],
-};
+// Sample conversation starters for auto-replies
+const CONVERSATION_STARTERS = [
+  "Olá! Como posso ajudar com sua busca por imóveis hoje?",
+  "Temos algumas novas listagens que podem te interessar. Gostaria de saber mais?",
+  "Entendi sua necessidade. Posso sugerir algumas opções que se encaixam no seu perfil.",
+  "Estou verificando a disponibilidade do imóvel. Aguarde um momento, por favor.",
+  "Claro, podemos agendar uma visita. Qual seria o melhor horário para você?",
+  "O proprietário está aberto a negociações no valor. Você gostaria de fazer uma contraproposta?",
+  "Acabei de receber a documentação. Está tudo em ordem para prosseguirmos.",
+  "Excelente escolha! Este imóvel tem uma localização privilegiada."
+];
 
-const Messages = () => {
+// Generate a random ID
+const generateId = () => Math.random().toString(36).substr(2, 9);
+
+const Messages: React.FC = () => {
+  const [activeContactId, setActiveContactId] = useState<string | null>(null);
+  const [contacts, setContacts] = useState<Contact[]>(CONTACTS);
+  const [conversations, setConversations] = useState<Record<string, Message[]>>({});
   const { toast } = useToast();
-  const [contacts, setContacts] = useState(MOCK_CONTACTS);
-  const [activeContact, setActiveContact] = useState<string | null>(null);
-  const [conversations, setConversations] = useState(MOCK_CONVERSATIONS);
-  const [newMessage, setNewMessage] = useState('');
 
-  const handleContactSelect = (contactId: string) => {
-    setActiveContact(contactId);
+  // Initialize conversations with sample data
+  useEffect(() => {
+    const initialConversations: Record<string, Message[]> = {};
     
-    // Marcar mensagens como lidas ao selecionar o contato
-    const updatedContacts = contacts.map(contact => 
-      contact.id === contactId ? { ...contact, unread: 0 } : contact
-    );
-    
-    setContacts(updatedContacts);
-  };
-
-  const handleSendMessage = () => {
-    if (!newMessage.trim() || !activeContact) return;
-    
-    const messageId = `m${Date.now()}`;
-    const now = new Date();
-    const timeString = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-    
-    const newMessageObj = {
-      id: messageId,
-      sender: 'user',
-      text: newMessage,
-      time: timeString,
-      isRead: true,
-    };
-    
-    // Adicionar mensagem à conversa
-    setConversations(prev => ({
-      ...prev,
-      [activeContact]: [...(prev[activeContact] || []), newMessageObj],
-    }));
-    
-    // Atualizar último contato
-    const updatedContacts = contacts.map(contact => 
-      contact.id === activeContact ? {
-        ...contact,
-        lastMessage: newMessage,
-        lastMessageTime: timeString,
-      } : contact
-    );
-    
-    setContacts(updatedContacts);
-    setNewMessage('');
-    
-    // Simulação de resposta
-    setTimeout(() => {
-      const responseId = `m${Date.now()}`;
-      const contact = contacts.find(c => c.id === activeContact);
+    CONTACTS.forEach(contact => {
+      const numberOfMessages = Math.floor(Math.random() * 5) + 1;
+      const messages: Message[] = [];
       
-      if (contact) {
-        const responseMessages = [
-          'Claro, vamos agendar!',
-          'Entendi, vou verificar isso para você.',
-          'Obrigado pela mensagem.',
-          'Podemos conversar mais sobre isso amanhã?',
-          'Vou enviar mais informações em breve.',
-        ];
+      // Add a welcome message from the contact
+      messages.push({
+        id: generateId(),
+        content: CONVERSATION_STARTERS[Math.floor(Math.random() * CONVERSATION_STARTERS.length)],
+        sender: 'contact',
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+        status: 'read'
+      });
+      
+      // Add some previous conversation
+      for (let i = 0; i < numberOfMessages; i++) {
+        const isUser = i % 2 === 0;
+        const hoursAgo = (numberOfMessages - i) * 2;
         
-        const randomResponse = responseMessages[Math.floor(Math.random() * responseMessages.length)];
-        const responseTime = `${now.getHours()}:${(now.getMinutes() + 1).toString().padStart(2, '0')}`;
-        
-        const responseObj = {
-          id: responseId,
-          sender: activeContact,
-          text: randomResponse,
-          time: responseTime,
-          isRead: false,
-        };
-        
-        setConversations(prev => ({
-          ...prev,
-          [activeContact]: [...prev[activeContact], responseObj],
-        }));
-        
-        // Atualizar último contato
-        const newUpdatedContacts = contacts.map(c => 
-          c.id === activeContact ? {
-            ...c,
-            lastMessage: randomResponse,
-            lastMessageTime: responseTime,
-          } : c
-        );
-        
-        setContacts(newUpdatedContacts);
-        
-        toast({
-          title: `Nova mensagem de ${contact.name}`,
-          description: randomResponse,
+        messages.push({
+          id: generateId(),
+          content: isUser 
+            ? `Olá, estou interessado em saber mais sobre os imóveis disponíveis em ${['Copacabana', 'Ipanema', 'Leblon', 'Botafogo', 'Flamengo'][Math.floor(Math.random() * 5)]}.`
+            : CONVERSATION_STARTERS[Math.floor(Math.random() * CONVERSATION_STARTERS.length)],
+          sender: isUser ? 'user' : 'contact',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * hoursAgo),
+          status: 'read'
         });
       }
-    }, 3000);
+      
+      initialConversations[contact.id] = messages;
+    });
+    
+    setConversations(initialConversations);
+  }, []);
+
+  const handleSelectContact = (contactId: string) => {
+    setActiveContactId(contactId);
+    
+    // Mark messages as read
+    setContacts(prev => 
+      prev.map(contact => 
+        contact.id === contactId 
+          ? { ...contact, unread: 0 }
+          : contact
+      )
+    );
   };
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
+  const handleSendMessage = (content: string) => {
+    if (!activeContactId) return;
+    
+    // Add user message
+    const newMessage: Message = {
+      id: generateId(),
+      content,
+      sender: 'user',
+      timestamp: new Date(),
+      status: 'sent'
+    };
+    
+    setConversations(prev => ({
+      ...prev,
+      [activeContactId]: [...(prev[activeContactId] || []), newMessage]
+    }));
+    
+    // Update contact's last message
+    setContacts(prev => 
+      prev.map(contact => 
+        contact.id === activeContactId 
+          ? { 
+              ...contact, 
+              lastMessage: content,
+              lastMessageTime: 'Agora'
+            }
+          : contact
+      )
+    );
+    
+    // Simulate message being delivered after 1 second
+    setTimeout(() => {
+      setConversations(prev => ({
+        ...prev,
+        [activeContactId]: prev[activeContactId].map(msg => 
+          msg.id === newMessage.id 
+            ? { ...msg, status: 'delivered' }
+            : msg
+        )
+      }));
       
-      <main className="flex-grow py-6 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h1 className="text-2xl font-bold mb-6">Mensagens</h1>
+      // Simulate message being read after 2 seconds
+      setTimeout(() => {
+        setConversations(prev => ({
+          ...prev,
+          [activeContactId]: prev[activeContactId].map(msg => 
+            msg.id === newMessage.id 
+              ? { ...msg, status: 'read' }
+              : msg
+          )
+        }));
+        
+        // Simulate reply after 3 seconds
+        setTimeout(() => {
+          const replyContent = CONVERSATION_STARTERS[Math.floor(Math.random() * CONVERSATION_STARTERS.length)];
           
-          <Card className="border-0 shadow-md h-[calc(100vh-220px)] min-h-[500px] overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-cols-3 h-full">
-              <ChatSidebar 
-                contacts={contacts}
-                activeContactId={activeContact}
-                onSelectContact={handleContactSelect}
-              />
-              
-              <div className="col-span-2 border-l">
-                {activeContact ? (
-                  <ChatWindow
-                    contact={contacts.find(c => c.id === activeContact)!}
-                    messages={conversations[activeContact] || []}
-                    newMessage={newMessage}
-                    onNewMessageChange={(e) => setNewMessage(e.target.value)}
-                    onSendMessage={handleSendMessage}
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full bg-gray-50">
-                    <div className="text-center">
-                      <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                      </div>
-                      <h3 className="text-lg font-medium text-gray-900">Suas mensagens</h3>
-                      <p className="text-gray-500 mt-1">Selecione um contato para iniciar uma conversa</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </Card>
+          const replyMessage: Message = {
+            id: generateId(),
+            content: replyContent,
+            sender: 'contact',
+            timestamp: new Date(),
+            status: 'read'
+          };
+          
+          setConversations(prev => ({
+            ...prev,
+            [activeContactId]: [...prev[activeContactId], replyMessage]
+          }));
+          
+          // Update contact's last message
+          setContacts(prev => 
+            prev.map(contact => 
+              contact.id === activeContactId 
+                ? { 
+                    ...contact, 
+                    lastMessage: replyContent,
+                    lastMessageTime: 'Agora'
+                  }
+                : contact
+            )
+          );
+          
+          // Show notification if contact is not active
+          if (document.visibilityState === 'hidden' || !activeContactId) {
+            toast({
+              title: `Nova mensagem de ${CONTACTS.find(c => c.id === activeContactId)?.name}`,
+              description: replyContent,
+              duration: 5000,
+            });
+          }
+        }, 3000);
+      }, 2000);
+    }, 1000);
+  };
+
+  const activeContact = activeContactId 
+    ? contacts.find(contact => contact.id === activeContactId) || null
+    : null;
+    
+  const activeMessages = activeContactId 
+    ? conversations[activeContactId] || []
+    : [];
+
+  return (
+    <div className="h-screen bg-gray-50 flex flex-col">
+      <div className="flex-grow flex overflow-hidden">
+        <div className="w-1/3 border-r h-full">
+          <ChatSidebar
+            contacts={contacts}
+            activeContactId={activeContactId}
+            onSelectContact={handleSelectContact}
+          />
         </div>
-      </main>
-      
-      <Footer />
+        <div className="w-2/3 h-full">
+          <ChatWindow
+            contact={activeContact}
+            messages={activeMessages}
+            onSendMessage={handleSendMessage}
+          />
+        </div>
+      </div>
     </div>
   );
 };
