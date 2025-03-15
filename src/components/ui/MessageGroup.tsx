@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { CheckCheck, Check, Clock } from 'lucide-react';
 
@@ -67,6 +67,7 @@ const MessageGroup: React.FC<MessageGroupProps> = ({ messages, formatMessageTime
                   />
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl">
+                  <DialogTitle className="sr-only">Visualização de imagem</DialogTitle>
                   <img 
                     src={message.imageUrl} 
                     alt="Imagem enviada" 
