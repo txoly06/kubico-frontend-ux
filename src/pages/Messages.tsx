@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import ChatSidebar from '@/components/ui/ChatSidebar';
 import ChatWindow from '@/components/ui/ChatWindow';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Sample data
 interface Contact {
@@ -114,7 +113,7 @@ const Messages: React.FC = () => {
   const [contacts, setContacts] = useState<Contact[]>(CONTACTS);
   const [conversations, setConversations] = useState<Record<string, Message[]>>({});
   const { toast } = useToast();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   // Initialize conversations with sample data
   useEffect(() => {
