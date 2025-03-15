@@ -4,8 +4,10 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import PropertyValuationForm, { ValuationFormData } from '@/components/ui/PropertyValuationForm';
 import PropertyValuationResult from '@/components/ui/PropertyValuationResult';
-import { Button } from '@/components/ui/button';
-import { BarChart3, Home, TrendingUp, CheckCircle, PenLine } from 'lucide-react';
+import ValuationHowItWorks from '@/components/ui/ValuationHowItWorks';
+import ValuationCallToAction from '@/components/ui/ValuationCallToAction';
+import ValuationFAQ from '@/components/ui/ValuationFAQ';
+import ValuationBenefits from '@/components/ui/ValuationBenefits';
 
 const PropertyValuation = () => {
   const [showResult, setShowResult] = useState(false);
@@ -77,114 +79,13 @@ const PropertyValuation = () => {
                 </div>
                 
                 <div className="space-y-6">
-                  <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold text-kubico-blue mb-4">
-                      Como funciona a avaliação?
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-kubico-blue/10 flex items-center justify-center">
-                          <PenLine className="h-5 w-5 text-kubico-blue" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium">Preencha o formulário</h4>
-                          <p className="text-sm text-kubico-gray-medium">Informe os dados do imóvel com o máximo de detalhes possível.</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-kubico-blue/10 flex items-center justify-center">
-                          <BarChart3 className="h-5 w-5 text-kubico-blue" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium">Processamento dos dados</h4>
-                          <p className="text-sm text-kubico-gray-medium">Nossa tecnologia analisa dados de mercado e imóveis similares.</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-kubico-blue/10 flex items-center justify-center">
-                          <CheckCircle className="h-5 w-5 text-kubico-blue" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium">Resultado instantâneo</h4>
-                          <p className="text-sm text-kubico-gray-medium">Receba uma estimativa com base nos dados fornecidos.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gradient-to-r from-kubico-blue to-kubico-blue/80 text-white rounded-xl p-6 shadow-sm">
-                    <h3 className="font-semibold mb-2">Quer uma avaliação profissional?</h3>
-                    <p className="text-sm text-white/80 mb-4">
-                      Para uma avaliação mais precisa, agende uma visita com um de nossos corretores especializados.
-                    </p>
-                    <Button className="w-full bg-white text-kubico-blue hover:bg-white/90">
-                      Solicitar Visita
-                    </Button>
-                  </div>
-                  
-                  <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold mb-4">Dúvidas Frequentes</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium mb-1">Quanto custa a avaliação online?</h4>
-                        <p className="text-sm text-kubico-gray-medium">
-                          A avaliação online é totalmente gratuita e não gera nenhum compromisso.
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="font-medium mb-1">A avaliação é precisa?</h4>
-                        <p className="text-sm text-kubico-gray-medium">
-                          A avaliação fornece uma estimativa baseada nos dados informados e valores de mercado, podendo variar em relação ao preço final de venda.
-                        </p>
-                      </div>
-                      <div>
-                        <h4 className="font-medium mb-1">Como posso obter uma avaliação mais precisa?</h4>
-                        <p className="text-sm text-kubico-gray-medium">
-                          Para uma avaliação mais precisa, recomendamos a visita de um de nossos corretores especializados ao imóvel.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  <ValuationHowItWorks />
+                  <ValuationCallToAction />
+                  <ValuationFAQ />
                 </div>
               </div>
               
-              <div className="mb-10 p-8 bg-white border border-gray-100 rounded-xl shadow-sm">
-                <h3 className="text-xl font-semibold text-center mb-8">Por que avaliar seu imóvel com a Kubico?</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="w-16 h-16 rounded-full bg-kubico-blue/10 flex items-center justify-center mx-auto mb-4">
-                      <TrendingUp className="h-8 w-8 text-kubico-blue" />
-                    </div>
-                    <h4 className="font-semibold mb-2">Precisão e Agilidade</h4>
-                    <p className="text-kubico-gray-medium">
-                      Nossa tecnologia utiliza dados atualizados do mercado imobiliário para fornecer uma avaliação rápida e precisa.
-                    </p>
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="w-16 h-16 rounded-full bg-kubico-blue/10 flex items-center justify-center mx-auto mb-4">
-                      <Home className="h-8 w-8 text-kubico-blue" />
-                    </div>
-                    <h4 className="font-semibold mb-2">Especialistas no Mercado</h4>
-                    <p className="text-kubico-gray-medium">
-                      Contamos com corretores experientes que conhecem profundamente o mercado imobiliário de cada região.
-                    </p>
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="w-16 h-16 rounded-full bg-kubico-blue/10 flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle className="h-8 w-8 text-kubico-blue" />
-                    </div>
-                    <h4 className="font-semibold mb-2">Serviço Completo</h4>
-                    <p className="text-kubico-gray-medium">
-                      Além da avaliação, oferecemos toda consultoria necessária para venda, compra ou aluguel do seu imóvel.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <ValuationBenefits />
             </>
           ) : (
             <PropertyValuationResult 
