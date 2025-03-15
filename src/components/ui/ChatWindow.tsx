@@ -2,10 +2,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Paperclip, MoreVertical, Phone, Video } from 'lucide-react';
+import { Send, Paperclip, MoreVertical, Phone, Video, Image, X, ChevronLeft } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 interface Message {
   id: string;
@@ -13,6 +15,8 @@ interface Message {
   sender: 'user' | 'contact';
   timestamp: Date;
   status: 'sent' | 'delivered' | 'read';
+  type?: 'text' | 'image';
+  imageUrl?: string;
 }
 
 interface Contact {
@@ -22,20 +26,45 @@ interface Contact {
   role: string;
   online: boolean;
   lastSeen?: string;
+  isTyping?: boolean;
 }
 
 interface ChatWindowProps {
   contact: Contact | null;
   messages: Message[];
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, type?: 'text' | 'image', imageUrl?: string) => void;
+  onBack?: () => void;
+  isMobileView?: boolean;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ contact, messages, onSendMessage }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ 
+  contact, 
+  messages, 
+  onSendMessage, 
+  onBack,
+  isMobileView = false
+}) => {
   const [newMessage, setNewMessage] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   const handleSendMessage = () => {
+    if (imagePreview) {
+      onSendMessage('', 'image', imagePreview);
+      setImagePreview(null);
+      setSelectedImage(null);
+      
+      toast({
+        title: "Imagem enviada",
+        description: "Sua imagem foi enviada com sucesso.",
+        duration: 2000,
+      });
+      return;
+    }
+    
     if (newMessage.trim() === '') return;
     
     onSendMessage(newMessage.trim());
@@ -51,6 +80,29 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ contact, messages, onSendMessag
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSendMessage();
+    }
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedImage(file);
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target && typeof event.target.result === 'string') {
+          setImagePreview(event.target.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearImagePreview = () => {
+    setImagePreview(null);
+    setSelectedImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -79,25 +131,34 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ contact, messages, onSendMessag
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Chat header */}
-      <div className="px-6 py-4 border-b flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
+      <div className="px-4 py-3 md:px-6 md:py-4 border-b flex items-center justify-between">
+        <div className="flex items-center gap-2 md:gap-3">
+          {isMobileView && (
+            <Button variant="ghost" size="icon" className="mr-1" onClick={onBack}>
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+          )}
+          <Avatar className="h-8 w-8 md:h-10 md:w-10">
             <AvatarImage src={contact.avatar} alt={contact.name} />
             <AvatarFallback>{contact.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="font-medium">{contact.name}</h3>
+            <h3 className="font-medium text-sm md:text-base">{contact.name}</h3>
             <p className="text-xs text-gray-500">
-              {contact.online ? 'Online agora' : `Visto por último ${contact.lastSeen || 'recentemente'}`}
+              {contact.isTyping 
+                ? 'Digitando...' 
+                : contact.online 
+                  ? 'Online agora' 
+                  : `Visto por último ${contact.lastSeen || 'recentemente'}`}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 md:gap-3">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Phone className="h-5 w-5 text-gray-600" />
+                <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 md:h-10 md:w-10">
+                  <Phone className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Ligar</TooltipContent>
@@ -107,8 +168,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ contact, messages, onSendMessag
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <Video className="h-5 w-5 text-gray-600" />
+                <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 md:h-10 md:w-10">
+                  <Video className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Videochamada</TooltipContent>
@@ -118,8 +179,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ contact, messages, onSendMessag
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <MoreVertical className="h-5 w-5 text-gray-600" />
+                <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 md:h-10 md:w-10">
+                  <MoreVertical className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Mais opções</TooltipContent>
@@ -129,20 +190,39 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ contact, messages, onSendMessag
       </div>
       
       {/* Chat messages */}
-      <div className="flex-grow overflow-y-auto p-6 bg-gray-50 space-y-4">
+      <div className="flex-grow overflow-y-auto p-3 md:p-6 bg-gray-50 space-y-4">
         {messages.map((message) => (
           <div
             key={message.id}
             className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[70%] rounded-lg p-3 ${
+              className={`max-w-[80%] md:max-w-[70%] rounded-lg p-2 md:p-3 ${
                 message.sender === 'user'
                   ? 'bg-kubico-blue text-white rounded-br-none'
                   : 'bg-white border rounded-bl-none'
               }`}
             >
-              <p className="text-sm">{message.content}</p>
+              {message.type === 'image' ? (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <img 
+                      src={message.imageUrl} 
+                      alt="Imagem enviada" 
+                      className="max-w-full rounded cursor-pointer"
+                    />
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl">
+                    <img 
+                      src={message.imageUrl} 
+                      alt="Imagem enviada" 
+                      className="max-w-full max-h-[80vh] object-contain"
+                    />
+                  </DialogContent>
+                </Dialog>
+              ) : (
+                <p className="text-sm">{message.content}</p>
+              )}
               <div
                 className={`text-xs mt-1 flex items-center justify-end gap-1 ${
                   message.sender === 'user' ? 'text-blue-100' : 'text-gray-400'
@@ -175,24 +255,84 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ contact, messages, onSendMessag
         <div ref={messagesEndRef} />
       </div>
       
+      {/* Image preview */}
+      {imagePreview && (
+        <div className="p-2 border-t bg-gray-50">
+          <div className="relative inline-block">
+            <img 
+              src={imagePreview} 
+              alt="Preview" 
+              className="max-h-40 rounded border"
+            />
+            <Button 
+              size="icon" 
+              variant="secondary" 
+              className="absolute top-1 right-1 h-6 w-6 rounded-full" 
+              onClick={clearImagePreview}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+      
       {/* Chat input */}
-      <div className="p-4 border-t">
+      <div className="p-3 md:p-4 border-t">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="rounded-full flex-shrink-0">
-            <Paperclip className="h-5 w-5 text-gray-600" />
-          </Button>
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            ref={fileInputRef}
+            onChange={handleImageSelect}
+          />
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="rounded-full flex-shrink-0 h-9 w-9 md:h-10 md:w-10"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Image className="h-5 w-5 text-gray-600" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Enviar imagem</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-9 w-9 md:h-10 md:w-10">
+                  <Paperclip className="h-5 w-5 text-gray-600" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Anexar arquivo</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Digite sua mensagem..."
-            className="rounded-full"
+            className="rounded-full text-sm"
+            disabled={!!imagePreview}
           />
+          
           <Button
             onClick={handleSendMessage}
             size="icon"
-            className="rounded-full bg-kubico-blue hover:bg-kubico-blue/90 flex-shrink-0"
-            disabled={!newMessage.trim()}
+            className={cn(
+              "rounded-full flex-shrink-0 h-9 w-9 md:h-10 md:w-10",
+              (newMessage.trim() || imagePreview) 
+                ? "bg-kubico-blue hover:bg-kubico-blue/90" 
+                : "bg-gray-300 hover:bg-gray-300 cursor-not-allowed"
+            )}
+            disabled={!newMessage.trim() && !imagePreview}
           >
             <Send className="h-5 w-5" />
           </Button>
