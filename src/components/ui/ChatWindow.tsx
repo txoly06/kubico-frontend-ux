@@ -2,12 +2,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Paperclip, MoreVertical, Phone, Video, Image, X, ChevronLeft } from 'lucide-react';
+import { Send, Paperclip, MoreVertical, Phone, Video, Image, X, ChevronLeft, Search, Smile } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import MessageGroup from './MessageGroup';
 
 interface Message {
   id: string;
@@ -37,6 +39,13 @@ interface ChatWindowProps {
   isMobileView?: boolean;
 }
 
+// Common emojis for quick access
+const COMMON_EMOJIS = [
+  "😊", "👍", "❤️", "👋", "🙏", "🔥", "😂", 
+  "🎉", "✅", "👀", "🏠", "🌟", "💯", "📄",
+  "👨‍👩‍👧‍👦", "📱", "🔑", "💰", "📅", "📍", "📞"
+];
+
 const ChatWindow: React.FC<ChatWindowProps> = ({ 
   contact, 
   messages, 
@@ -47,8 +56,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const [newMessage, setNewMessage] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleSendMessage = () => {
@@ -78,7 +90,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
       handleSendMessage();
     }
   };
@@ -104,6 +116,67 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+  
+  const toggleSearch = () => {
+    setIsSearchOpen(!isSearchOpen);
+    if (!isSearchOpen) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    } else {
+      setSearchQuery('');
+    }
+  };
+
+  const insertEmoji = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+  };
+
+  // Filter messages based on search query
+  const filteredMessages = searchQuery.trim() 
+    ? messages.filter(msg => 
+        msg.type !== 'image' && 
+        msg.content.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : messages;
+
+  // Group messages by sender and time proximity
+  const groupedMessages = () => {
+    const groups: Message[][] = [];
+    let currentGroup: Message[] = [];
+    let lastSender: 'user' | 'contact' | null = null;
+    let lastTimestamp: Date | null = null;
+    
+    filteredMessages.forEach(message => {
+      const messageTime = new Date(message.timestamp);
+      
+      // Start a new group if:
+      // 1. There's no current group, or
+      // 2. Sender changed, or
+      // 3. Time gap is more than 5 minutes
+      if (
+        currentGroup.length === 0 || 
+        lastSender !== message.sender ||
+        (lastTimestamp && messageTime.getTime() - lastTimestamp.getTime() > 5 * 60 * 1000)
+      ) {
+        if (currentGroup.length > 0) {
+          groups.push([...currentGroup]);
+        }
+        currentGroup = [message];
+      } else {
+        currentGroup.push(message);
+      }
+      
+      lastSender = message.sender;
+      lastTimestamp = messageTime;
+    });
+    
+    if (currentGroup.length > 0) {
+      groups.push([...currentGroup]);
+    }
+    
+    return groups;
   };
 
   // Auto-scroll to bottom when messages change
@@ -157,6 +230,22 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="rounded-full h-8 w-8 md:h-10 md:w-10"
+                  onClick={toggleSearch}
+                >
+                  <Search className={cn("h-4 w-4 md:h-5 md:w-5 text-gray-600", isSearchOpen && "text-kubico-blue")} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Pesquisar</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 md:h-10 md:w-10">
                   <Phone className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
                 </Button>
@@ -189,68 +278,36 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
       </div>
       
+      {/* Search bar */}
+      {isSearchOpen && (
+        <div className="px-4 py-2 border-b flex items-center gap-2">
+          <Search className="h-4 w-4 text-gray-400" />
+          <Input
+            ref={searchInputRef}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Pesquisar na conversa..."
+            className="border-none focus-visible:ring-0 focus-visible:ring-offset-0 h-8 p-0 text-sm"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => setSearchQuery('')}
+          >
+            <X className="h-4 w-4 text-gray-400" />
+          </Button>
+        </div>
+      )}
+      
       {/* Chat messages */}
       <div className="flex-grow overflow-y-auto p-3 md:p-6 bg-gray-50 space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div
-              className={`max-w-[80%] md:max-w-[70%] rounded-lg p-2 md:p-3 ${
-                message.sender === 'user'
-                  ? 'bg-kubico-blue text-white rounded-br-none'
-                  : 'bg-white border rounded-bl-none'
-              }`}
-            >
-              {message.type === 'image' ? (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <img 
-                      src={message.imageUrl} 
-                      alt="Imagem enviada" 
-                      className="max-w-full rounded cursor-pointer"
-                    />
-                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl">
-                    <img 
-                      src={message.imageUrl} 
-                      alt="Imagem enviada" 
-                      className="max-w-full max-h-[80vh] object-contain"
-                    />
-                  </DialogContent>
-                </Dialog>
-              ) : (
-                <p className="text-sm">{message.content}</p>
-              )}
-              <div
-                className={`text-xs mt-1 flex items-center justify-end gap-1 ${
-                  message.sender === 'user' ? 'text-blue-100' : 'text-gray-400'
-                }`}
-              >
-                {formatMessageTime(message.timestamp)}
-                {message.sender === 'user' && (
-                  <span>
-                    {message.status === 'read' ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-check-check">
-                        <path d="M18 6 7 17l-5-5" />
-                        <path d="m22 10-7.5 7.5L13 16" />
-                      </svg>
-                    ) : message.status === 'delivered' ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-check">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
-                    )}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+        {groupedMessages().map((group, groupIndex) => (
+          <MessageGroup 
+            key={groupIndex}
+            messages={group}
+            formatMessageTime={formatMessageTime}
+          />
         ))}
         <div ref={messagesEndRef} />
       </div>
@@ -314,14 +371,41 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             </Tooltip>
           </TooltipProvider>
           
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Digite sua mensagem..."
-            className="rounded-full text-sm"
-            disabled={!!imagePreview}
-          />
+          <div className="relative flex-grow">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder="Digite sua mensagem..."
+              className="rounded-full text-sm pr-11"
+              disabled={!!imagePreview}
+            />
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  size="icon"
+                  variant="ghost"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
+                >
+                  <Smile className="h-5 w-5 text-gray-500" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2">
+                <div className="grid grid-cols-7 gap-1">
+                  {COMMON_EMOJIS.map((emoji, index) => (
+                    <button
+                      key={index}
+                      className="h-8 w-8 flex items-center justify-center text-xl hover:bg-gray-100 rounded"
+                      onClick={() => insertEmoji(emoji)}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
           
           <Button
             onClick={handleSendMessage}
