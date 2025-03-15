@@ -2,6 +2,8 @@
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
+import { CheckCheck, Check, Clock } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -32,7 +34,7 @@ const MessageGroup: React.FC<MessageGroupProps> = ({ messages, formatMessageTime
       {!isUserMessage && (
         <div className="mr-2 mt-1">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="" alt="" />
+            <AvatarImage src="" alt="Contact avatar" />
             <AvatarFallback className="bg-gray-300 text-gray-600">C</AvatarFallback>
           </Avatar>
         </div>
@@ -42,19 +44,18 @@ const MessageGroup: React.FC<MessageGroupProps> = ({ messages, formatMessageTime
         {messages.map((message, index) => (
           <div
             key={message.id}
-            className={`${
+            className={cn(
               isUserMessage
                 ? 'bg-kubico-blue text-white rounded-tl-lg rounded-tr-lg'
-                : 'bg-white border rounded-tl-lg rounded-tr-lg'
-            } ${
+                : 'bg-white border rounded-tl-lg rounded-tr-lg',
               index === 0 
                 ? isUserMessage ? 'rounded-bl-lg' : 'rounded-br-lg' 
-                : ''
-            } ${
+                : '',
               index === messages.length - 1 
                 ? isUserMessage ? 'rounded-br-none' : 'rounded-bl-none' 
-                : ''
-            } p-2 md:p-3 mb-0.5`}
+                : '',
+              'p-2 md:p-3 mb-0.5 shadow-sm'
+            )}
           >
             {message.type === 'image' ? (
               <Dialog>
@@ -62,7 +63,7 @@ const MessageGroup: React.FC<MessageGroupProps> = ({ messages, formatMessageTime
                   <img 
                     src={message.imageUrl} 
                     alt="Imagem enviada" 
-                    className="max-w-full rounded cursor-pointer"
+                    className="max-w-full rounded cursor-pointer transition-all hover:brightness-90"
                   />
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl">
@@ -74,33 +75,26 @@ const MessageGroup: React.FC<MessageGroupProps> = ({ messages, formatMessageTime
                 </DialogContent>
               </Dialog>
             ) : (
-              <p className="text-sm">{message.content}</p>
+              <p className="text-sm break-words">{message.content}</p>
             )}
             
             {/* Only show timestamp and status for the last message in the group */}
             {index === messages.length - 1 && (
               <div
-                className={`text-xs mt-1 flex items-center justify-end gap-1 ${
-                  isUserMessage ? 'text-blue-100' : 'text-gray-400'
-                }`}
+                className={cn(
+                  "text-xs mt-1 flex items-center justify-end gap-1",
+                  isUserMessage ? "text-blue-100" : "text-gray-400"
+                )}
               >
                 {formatMessageTime(message.timestamp)}
                 {isUserMessage && (
                   <span>
                     {message.status === 'read' ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-check-check">
-                        <path d="M18 6 7 17l-5-5" />
-                        <path d="m22 10-7.5 7.5L13 16" />
-                      </svg>
+                      <CheckCheck className="h-3 w-3" />
                     ) : message.status === 'delivered' ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-check">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
+                      <Check className="h-3 w-3" />
                     ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
+                      <Clock className="h-3 w-3" />
                     )}
                   </span>
                 )}
