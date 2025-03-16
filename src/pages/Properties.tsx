@@ -1,12 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutGrid, LayoutList, MapPin, ArrowUpDown } from 'lucide-react';
+import { LayoutGrid, LayoutList, MapPin, ArrowUpDown, Search } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import SearchFilters from '@/components/ui/SearchFilters';
 import PropertyCard from '@/components/ui/PropertyCard';
 import { Button } from '@/components/ui/button';
+import AdvancedFilters from '@/components/ui/AdvancedFilters';
+import MapView from '@/components/ui/MapView';
 
 // Sample properties data
 const propertiesData = [
