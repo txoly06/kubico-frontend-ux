@@ -1,74 +1,36 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, LogIn, Lock, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos.",
-        variant: "destructive",
-      });
       return;
     }
     
-    setIsLoading(true);
+    const success = await login(email, password);
     
-    // Simulação de login
-    try {
-      // Em uma aplicação real, aqui seria feita uma chamada à API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simulando credenciais válidas
-      if (email === 'usuario@exemplo.com' && password === 'senha123') {
-        toast({
-          title: "Login realizado com sucesso!",
-          description: "Redirecionando para o dashboard...",
-        });
-        
-        // Simulação de armazenamento do token no localStorage
-        localStorage.setItem('kubico_token', 'token_simulado');
-        localStorage.setItem('kubico_user', JSON.stringify({
-          name: 'Ana Silva',
-          email: email,
-          role: 'Cliente'
-        }));
-        
-        navigate('/dashboard');
-      } else {
-        toast({
-          title: "Credenciais inválidas",
-          description: "Email ou senha incorretos.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Erro ao realizar login",
-        description: "Ocorreu um erro ao tentar fazer login. Tente novamente.",
-        variant: "destructive",
-      });
-      console.error('Erro de login:', error);
-    } finally {
-      setIsLoading(false);
+    if (success) {
+      // Redirecionar para a página anterior ou dashboard
+      const origin = location.state?.from?.pathname || '/dashboard';
+      navigate(origin);
     }
   };
 

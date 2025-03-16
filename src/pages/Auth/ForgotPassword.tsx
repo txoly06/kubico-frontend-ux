@@ -6,49 +6,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { toast } = useToast();
+  const { forgotPassword, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email) {
-      toast({
-        title: "Email obrigatório",
-        description: "Por favor, informe seu email.",
-        variant: "destructive",
-      });
       return;
     }
     
-    setIsLoading(true);
+    const success = await forgotPassword(email);
     
-    try {
-      // Simulação de envio de email de recuperação
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+    if (success) {
       setIsSubmitted(true);
-      
-      toast({
-        title: "Email enviado com sucesso!",
-        description: "Verifique sua caixa de entrada para redefinir sua senha.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao enviar email",
-        description: "Ocorreu um erro ao tentar enviar o email de recuperação. Tente novamente.",
-        variant: "destructive",
-      });
-      console.error('Erro ao enviar email:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 

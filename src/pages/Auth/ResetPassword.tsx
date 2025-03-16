@@ -6,60 +6,32 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const { resetPassword, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!password || !confirmPassword) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos.",
-        variant: "destructive",
-      });
       return;
     }
     
     if (password !== confirmPassword) {
-      toast({
-        title: "Senhas não conferem",
-        description: "A senha e a confirmação de senha devem ser iguais.",
-        variant: "destructive",
-      });
       return;
     }
     
-    setIsLoading(true);
+    const success = await resetPassword(password, confirmPassword);
     
-    try {
-      // Simulação de reset de senha
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast({
-        title: "Senha redefinida com sucesso!",
-        description: "Você já pode fazer login com sua nova senha.",
-      });
-      
+    if (success) {
       navigate('/auth/login');
-    } catch (error) {
-      toast({
-        title: "Erro ao redefinir senha",
-        description: "Ocorreu um erro ao tentar redefinir sua senha. Tente novamente.",
-        variant: "destructive",
-      });
-      console.error('Erro ao redefinir senha:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 

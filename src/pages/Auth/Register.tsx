@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -20,9 +20,8 @@ const Register = () => {
     confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const { toast } = useToast();
+  const { register, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,29 +31,14 @@ const Register = () => {
 
   const validateForm = () => {
     if (!formData.name || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos.",
-        variant: "destructive",
-      });
       return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Senhas não conferem",
-        description: "A senha e a confirmação de senha devem ser iguais.",
-        variant: "destructive",
-      });
       return false;
     }
 
     if (!acceptTerms) {
-      toast({
-        title: "Termos de uso",
-        description: "Você precisa aceitar os termos de uso para continuar.",
-        variant: "destructive",
-      });
       return false;
     }
 
@@ -66,27 +50,15 @@ const Register = () => {
     
     if (!validateForm()) return;
     
-    setIsLoading(true);
+    const success = await register({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      password: formData.password
+    });
     
-    try {
-      // Simulação de registro
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast({
-        title: "Cadastro realizado com sucesso!",
-        description: "Você já pode fazer login com suas credenciais.",
-      });
-      
+    if (success) {
       navigate('/auth/login');
-    } catch (error) {
-      toast({
-        title: "Erro ao realizar cadastro",
-        description: "Ocorreu um erro ao tentar fazer o cadastro. Tente novamente.",
-        variant: "destructive",
-      });
-      console.error('Erro de cadastro:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
