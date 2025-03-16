@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -13,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import Notifications from '@/components/ui/Notifications';
 
 const mainNavItems = [
@@ -37,9 +36,8 @@ const Navbar = () => {
   const { pathname } = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
-  // Efeito para detectar scroll
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -49,12 +47,10 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Fechar menu ao navegar
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  // Classes condicionais do navbar
   const navClasses = cn(
     "fixed top-0 w-full z-50 transition-all duration-300",
     {
@@ -63,7 +59,6 @@ const Navbar = () => {
     }
   );
 
-  // Classes condicionais dos itens do menu
   const getLinkClasses = (path: string) => {
     const isActive = pathname === path || pathname.startsWith(`${path}/`);
     
@@ -81,7 +76,6 @@ const Navbar = () => {
     <nav className={navClasses}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <Link to="/" className="flex items-center">
             <h1 className={cn(
               "text-xl font-semibold transition-colors",
@@ -94,7 +88,6 @@ const Navbar = () => {
             </h1>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
             {mainNavItems.map((item) => (
               <Link key={item.path} to={item.path} className={getLinkClasses(item.path)}>
@@ -103,15 +96,12 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Auth/User Section */}
           <div className="flex items-center space-x-2">
-            {/* Botão de Notificações (quando usuário está logado) */}
             {user && (
               <Notifications className="mr-1" />
             )}
             
             {user ? (
-              // Usuário logado
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -179,7 +169,6 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              // Usuário não logado
               <div className="flex items-center">
                 <Link to="/auth/login">
                   <Button
@@ -214,7 +203,6 @@ const Navbar = () => {
               </div>
             )}
 
-            {/* Mobile menu toggle */}
             <Button
               variant="ghost"
               size="icon"
@@ -237,7 +225,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
       {isMobileMenuOpen && (
         <div className="lg:hidden bg-white border-t border-gray-100 shadow-md">
           <div className="container mx-auto px-4 py-2">
