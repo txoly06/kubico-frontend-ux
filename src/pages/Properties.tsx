@@ -128,6 +128,8 @@ const Properties = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortOption, setSortOption] = useState('relevance');
   const [properties, setProperties] = useState(propertiesData);
+  const [showMap, setShowMap] = useState(false);
+  const [activeFilterCount, setActiveFilterCount] = useState(0);
   
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -158,6 +160,66 @@ const Properties = () => {
     
     setProperties(sortedProperties);
   }, [sortOption]);
+
+  const handleApplyFilters = (filters: any) => {
+    console.log('Applied filters:', filters);
+    
+    // Count active filters
+    let count = 0;
+    
+    if (filters.propertyTypes.length > 0) count++;
+    if (filters.priceRange[0] !== 300000 || filters.priceRange[1] !== 3000000) count++;
+    if (filters.bedrooms.length > 0) count++;
+    if (filters.bathrooms.length > 0) count++;
+    if (filters.parkingSpaces.length > 0) count++;
+    if (filters.areaRange[0] !== 30 || filters.areaRange[1] !== 500) count++;
+    if (filters.features.length > 0) count++;
+    if (filters.neighborhoods.length > 0) count++;
+    
+    setActiveFilterCount(count);
+    
+    // Filter properties based on the applied filters
+    // This is a simplified version for demonstration
+    let filteredProperties = [...propertiesData];
+    
+    // Filter by property type
+    if (filters.propertyTypes.length > 0) {
+      filteredProperties = filteredProperties.filter(property => 
+        filters.propertyTypes.some((type: string) => 
+          property.type.toLowerCase().includes(type.toLowerCase())
+        )
+      );
+    }
+    
+    // Filter by price range
+    filteredProperties = filteredProperties.filter(property => 
+      property.price >= filters.priceRange[0] && property.price <= filters.priceRange[1]
+    );
+    
+    // Filter by bedrooms
+    if (filters.bedrooms.length > 0) {
+      filteredProperties = filteredProperties.filter(property => 
+        filters.bedrooms.includes(property.bedrooms) || 
+        (filters.bedrooms.includes(5) && property.bedrooms >= 5)
+      );
+    }
+    
+    // Filter by area
+    filteredProperties = filteredProperties.filter(property => 
+      property.area >= filters.areaRange[0] && property.area <= filters.areaRange[1]
+    );
+    
+    setProperties(filteredProperties);
+  };
+
+  const handleClearFilters = () => {
+    setActiveFilterCount(0);
+    setProperties(propertiesData);
+  };
+
+  const handlePropertySelect = (propertyId: string) => {
+    window.location.href = `/properties/${propertyId}`;
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -182,6 +244,13 @@ const Properties = () => {
           <div className="mb-8">
             <SearchFilters />
           </div>
+
+          {/* Advanced filters */}
+          <AdvancedFilters 
+            onApplyFilters={handleApplyFilters}
+            onClearFilters={handleClearFilters}
+            activeFilterCount={activeFilterCount}
+          />
           
           {/* Results header */}
           <div className="flex flex-wrap justify-between items-center mb-6">
@@ -228,7 +297,11 @@ const Properties = () => {
               </div>
               
               {/* Map view button */}
-              <Button variant="outline" className="hidden md:flex items-center">
+              <Button 
+                variant="outline" 
+                className="hidden md:flex items-center"
+                onClick={() => setShowMap(true)}
+              >
                 <MapPin className="h-4 w-4 mr-2" />
                 Ver no Mapa
               </Button>
@@ -357,22 +430,49 @@ const Properties = () => {
             </div>
           )}
           
+          {/* Map View Modal */}
+          {showMap && (
+            <MapView 
+              properties={properties}
+              onPropertySelect={handlePropertySelect}
+              onClose={() => setShowMap(false)}
+            />
+          )}
+          
+          {/* Empty state when no properties match filters */}
+          {properties.length === 0 && (
+            <div className="p-12 text-center bg-gray-50 rounded-lg border border-gray-100">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Nenhum imóvel encontrado</h3>
+              <p className="text-gray-500 max-w-md mx-auto mb-6">
+                Não encontramos imóveis com os filtros selecionados. Tente ajustar seus critérios de busca.
+              </p>
+              <Button onClick={handleClearFilters}>
+                Limpar Filtros
+              </Button>
+            </div>
+          )}
+          
           {/* Pagination */}
-          <div className="mt-10 flex justify-center">
-            <nav className="flex items-center space-x-2">
-              <Button variant="outline" className="h-10 px-4 text-kubico-gray-dark border-gray-200" disabled>
-                Anterior
-              </Button>
-              <Button className="h-10 w-10 bg-kubico-blue hover:bg-kubico-blue/90">1</Button>
-              <Button variant="outline" className="h-10 w-10 text-kubico-gray-dark border-gray-200">2</Button>
-              <Button variant="outline" className="h-10 w-10 text-kubico-gray-dark border-gray-200">3</Button>
-              <span className="text-kubico-gray-dark">...</span>
-              <Button variant="outline" className="h-10 w-10 text-kubico-gray-dark border-gray-200">12</Button>
-              <Button variant="outline" className="h-10 px-4 text-kubico-gray-dark border-gray-200">
-                Próxima
-              </Button>
-            </nav>
-          </div>
+          {properties.length > 0 && (
+            <div className="mt-10 flex justify-center">
+              <nav className="flex items-center space-x-2">
+                <Button variant="outline" className="h-10 px-4 text-kubico-gray-dark border-gray-200" disabled>
+                  Anterior
+                </Button>
+                <Button className="h-10 w-10 bg-kubico-blue hover:bg-kubico-blue/90">1</Button>
+                <Button variant="outline" className="h-10 w-10 text-kubico-gray-dark border-gray-200">2</Button>
+                <Button variant="outline" className="h-10 w-10 text-kubico-gray-dark border-gray-200">3</Button>
+                <span className="text-kubico-gray-dark">...</span>
+                <Button variant="outline" className="h-10 w-10 text-kubico-gray-dark border-gray-200">12</Button>
+                <Button variant="outline" className="h-10 px-4 text-kubico-gray-dark border-gray-200">
+                  Próxima
+                </Button>
+              </nav>
+            </div>
+          )}
         </div>
       </main>
       

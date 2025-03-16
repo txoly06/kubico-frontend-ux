@@ -10,6 +10,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import PropertyDetails from "./pages/PropertyDetails";
+import Properties from "./pages/Properties"; // Add import for Properties page
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import Contracts from "./pages/Contracts";
@@ -33,6 +34,7 @@ const App = () => (
           <Routes>
             {/* Rotas públicas */}
             <Route path="/" element={<Index />} />
+            <Route path="/properties" element={<Properties />} /> {/* Add route for Properties page */}
             <Route path="/properties/:id" element={<PropertyDetails />} />
             <Route path="/contact" element={<Contact />} />
             
