@@ -12,6 +12,10 @@ import Dashboard from "./pages/Dashboard";
 import Contracts from "./pages/Contracts";
 import PropertyValuation from "./pages/PropertyValuation";
 import Messages from "./pages/Messages";
+import Login from "./pages/Auth/Login";
+import Register from "./pages/Auth/Register";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
+import ResetPassword from "./pages/Auth/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +33,13 @@ const App = () => (
           <Route path="/contracts" element={<Contracts />} />
           <Route path="/valuation" element={<PropertyValuation />} />
           <Route path="/messages" element={<Messages />} />
+          
+          {/* Rotas de autenticação */}
+          <Route path="/auth/login" element={<Login />} />
+          <Route path="/auth/register" element={<Register />} />
+          <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+          <Route path="/auth/reset-password" element={<ResetPassword />} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
