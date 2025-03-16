@@ -1,13 +1,45 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, User, ChevronDown } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { LogIn, Menu, X, User, Home, Building, MessageSquare, FileText, ChevronDown, Heart, BarChart } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMobile } from '@/hooks/use-mobile';
+import Notifications from '@/components/ui/Notifications';
+
+const mainNavItems = [
+  { label: 'Início', path: '/', icon: <Home className="w-4 h-4 mr-2" /> },
+  { label: 'Comprar', path: '/properties?type=sale', icon: <Building className="w-4 h-4 mr-2" /> },
+  { label: 'Alugar', path: '/properties?type=rent', icon: <Building className="w-4 h-4 mr-2" /> },
+  { label: 'Avaliação de Imóveis', path: '/property-valuation', icon: <BarChart className="w-4 h-4 mr-2" /> },
+  { label: 'Contato', path: '/contact', icon: <MessageSquare className="w-4 h-4 mr-2" /> },
+];
+
+const dashboardNavItems = [
+  { label: 'Dashboard', path: '/dashboard' },
+  { label: 'Meus Imóveis', path: '/properties/my' },
+  { label: 'Contratos', path: '/contracts' },
+  { label: 'Mensagens', path: '/messages' },
+  { label: 'Favoritos', path: '/dashboard?tab=favorites' },
+];
 
 const Navbar = () => {
+  const { user, logout } = useAuth();
+  const { pathname } = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobile = useMobile();
 
+  // Efeito para detectar scroll
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -17,178 +49,241 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Fechar menu ao navegar
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Classes condicionais do navbar
+  const navClasses = cn(
+    "fixed top-0 w-full z-50 transition-all duration-300",
+    {
+      "bg-white shadow-sm": isScrolled || pathname !== '/',
+      "bg-transparent": !isScrolled && pathname === '/',
+    }
+  );
+
+  // Classes condicionais dos itens do menu
+  const getLinkClasses = (path: string) => {
+    const isActive = pathname === path || pathname.startsWith(`${path}/`);
+    
+    return cn(
+      "text-sm font-medium relative transition-colors",
+      {
+        "text-kubico-blue": isActive,
+        "text-gray-700 hover:text-kubico-blue": !isActive && (isScrolled || pathname !== '/'),
+        "text-white hover:text-white/80": !isActive && !isScrolled && pathname === '/',
+      }
+    );
+  };
+
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? 'bg-white/80 backdrop-blur-md shadow-sm py-3'
-          : 'bg-transparent py-5'
-      }`}
-    >
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="flex items-center justify-between">
-          <Link 
-            to="/" 
-            className="flex items-center transition-opacity duration-300 hover:opacity-80"
-          >
-            <span className="font-display font-bold text-2xl bg-gradient-to-r from-kubico-blue to-kubico-green bg-clip-text text-transparent">
+    <nav className={navClasses}>
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center">
+            <h1 className={cn(
+              "text-xl font-semibold transition-colors",
+              {
+                "text-kubico-blue": isScrolled || pathname !== '/',
+                "text-white": !isScrolled && pathname === '/',
+              }
+            )}>
               Kubico
-            </span>
+            </h1>
           </Link>
-          
-          {/* Desktop navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
-            <Link 
-              to="/properties" 
-              className="relative px-3 py-2 text-sm font-medium text-kubico-gray-dark hover:text-kubico-blue transition-colors duration-200"
-            >
-              Imóveis
-            </Link>
-            <div className="relative group">
-              <button className="flex items-center px-3 py-2 text-sm font-medium text-kubico-gray-dark hover:text-kubico-blue transition-colors duration-200">
-                Serviços <ChevronDown className="ml-1 h-4 w-4" />
-              </button>
-              <div className="absolute left-0 mt-2 w-48 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform scale-95 group-hover:scale-100">
-                <div className="py-1">
-                  <Link to="/valuation" className="block px-4 py-2 text-sm text-kubico-gray-dark hover:bg-gray-50">
-                    Avaliação de Imóveis
-                  </Link>
-                  <Link to="/contracts" className="block px-4 py-2 text-sm text-kubico-gray-dark hover:bg-gray-50">
-                    Gestão de Contratos
-                  </Link>
-                  <Link to="/messages" className="block px-4 py-2 text-sm text-kubico-gray-dark hover:bg-gray-50">
-                    Mensagens
-                  </Link>
-                </div>
-              </div>
-            </div>
-            <Link 
-              to="/about" 
-              className="px-3 py-2 text-sm font-medium text-kubico-gray-dark hover:text-kubico-blue transition-colors duration-200"
-            >
-              Sobre
-            </Link>
-            <Link 
-              to="/contact" 
-              className="px-3 py-2 text-sm font-medium text-kubico-gray-dark hover:text-kubico-blue transition-colors duration-200"
-            >
-              Contato
-            </Link>
-          </nav>
-          
-          <div className="hidden md:flex items-center space-x-4">
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="font-medium">
-                Login
-              </Button>
-            </Link>
-            <Link to="/register">
-              <Button size="sm" className="font-medium bg-kubico-blue hover:bg-kubico-blue/90">
-                Cadastre-se
-              </Button>
-            </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-8">
+            {mainNavItems.map((item) => (
+              <Link key={item.path} to={item.path} className={getLinkClasses(item.path)}>
+                {item.label}
+              </Link>
+            ))}
           </div>
-          
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-md text-kubico-gray-dark hover:text-kubico-blue focus:outline-none"
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
+
+          {/* Auth/User Section */}
+          <div className="flex items-center space-x-2">
+            {/* Botão de Notificações (quando usuário está logado) */}
+            {user && (
+              <Notifications className="mr-1" />
             )}
-          </button>
+            
+            {user ? (
+              // Usuário logado
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-kubico-blue text-white">
+                        {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <div className="flex items-center justify-start p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium">{user.name || 'Usuário'}</p>
+                      <p className="w-[200px] truncate text-sm text-gray-500">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="cursor-pointer">
+                      <BarChart className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard?tab=profile" className="cursor-pointer">
+                      <User className="w-4 h-4 mr-2" />
+                      Meu Perfil
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/properties/my" className="cursor-pointer">
+                      <Building className="w-4 h-4 mr-2" />
+                      Meus Imóveis
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/contracts" className="cursor-pointer">
+                      <FileText className="w-4 h-4 mr-2" />
+                      Contratos
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/messages" className="cursor-pointer">
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Mensagens
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard?tab=favorites" className="cursor-pointer">
+                      <Heart className="w-4 h-4 mr-2" />
+                      Favoritos
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={logout}
+                    className="text-red-600 cursor-pointer"
+                  >
+                    <LogIn className="w-4 h-4 mr-2 rotate-180" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              // Usuário não logado
+              <div className="flex items-center">
+                <Link to="/auth/login">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "mr-2",
+                      {
+                        "text-gray-700 border-gray-300": isScrolled || pathname !== '/',
+                        "text-white border-white/20 hover:bg-white/10 hover:text-white": 
+                          !isScrolled && pathname === '/',
+                      }
+                    )}
+                  >
+                    Entrar
+                  </Button>
+                </Link>
+                <Link to="/auth/register">
+                  <Button
+                    size="sm"
+                    className={cn(
+                      {
+                        "bg-kubico-blue hover:bg-kubico-blue/90": isScrolled || pathname !== '/',
+                        "bg-white text-kubico-blue hover:bg-white/90": 
+                          !isScrolled && pathname === '/',
+                      }
+                    )}
+                  >
+                    Cadastrar
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile menu toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "lg:hidden ml-2",
+                {
+                  "text-gray-700": isScrolled || pathname !== '/',
+                  "text-white": !isScrolled && pathname === '/',
+                }
+              )}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </Button>
+          </div>
         </div>
       </div>
-      
+
       {/* Mobile menu */}
-      <div
-        className={`fixed inset-0 z-40 transform transition-transform duration-300 ease-in-out ${
-          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
-      >
-        <div className="absolute inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)} />
-        <nav className="relative h-full w-64 max-w-sm ml-auto bg-white shadow-xl flex flex-col">
-          <div className="p-5 border-b">
-            <div className="flex items-center justify-between">
-              <span className="font-display font-bold text-2xl bg-gradient-to-r from-kubico-blue to-kubico-green bg-clip-text text-transparent">
-                Kubico
-              </span>
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 rounded-md text-kubico-gray-dark hover:text-kubico-blue focus:outline-none"
-              >
-                <X className="h-5 w-5" />
-              </button>
+      {isMobileMenuOpen && (
+        <div className="lg:hidden bg-white border-t border-gray-100 shadow-md">
+          <div className="container mx-auto px-4 py-2">
+            <div className="flex flex-col divide-y divide-gray-100">
+              {mainNavItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="flex items-center py-3 text-gray-700 hover:text-kubico-blue"
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              ))}
+              
+              {user && (
+                <>
+                  <div className="py-2">
+                    <p className="text-sm font-medium text-gray-500 mb-2 pt-2">
+                      Dashboard
+                    </p>
+                    {dashboardNavItems.map((item) => (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className="block py-2 pl-4 text-gray-700 hover:text-kubico-blue"
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                  <Button
+                    onClick={logout}
+                    variant="ghost"
+                    className="mt-2 py-3 justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <LogIn className="h-4 w-4 mr-2 rotate-180" />
+                    Sair
+                  </Button>
+                </>
+              )}
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto">
-            <div className="px-2 py-4 space-y-1">
-              <Link
-                to="/properties"
-                className="block px-3 py-2 rounded-md text-base font-medium text-kubico-gray-dark hover:bg-gray-100"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Imóveis
-              </Link>
-              <Link
-                to="/valuation"
-                className="block px-3 py-2 rounded-md text-base font-medium text-kubico-gray-dark hover:bg-gray-100"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Avaliação de Imóveis
-              </Link>
-              <Link
-                to="/contracts"
-                className="block px-3 py-2 rounded-md text-base font-medium text-kubico-gray-dark hover:bg-gray-100"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Gestão de Contratos
-              </Link>
-              <Link
-                to="/messages"
-                className="block px-3 py-2 rounded-md text-base font-medium text-kubico-gray-dark hover:bg-gray-100"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Mensagens
-              </Link>
-              <Link
-                to="/about"
-                className="block px-3 py-2 rounded-md text-base font-medium text-kubico-gray-dark hover:bg-gray-100"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Sobre
-              </Link>
-              <Link
-                to="/contact"
-                className="block px-3 py-2 rounded-md text-base font-medium text-kubico-gray-dark hover:bg-gray-100"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Contato
-              </Link>
-            </div>
-          </div>
-          <div className="p-4 border-t space-y-4">
-            <Link
-              to="/login"
-              className="w-full block px-4 py-2 text-center rounded-md text-kubico-gray-dark border border-gray-300 hover:bg-gray-100"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Login
-            </Link>
-            <Link
-              to="/register"
-              className="w-full block px-4 py-2 text-center rounded-md text-white bg-kubico-blue hover:bg-kubico-blue/90"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Cadastre-se
-            </Link>
-          </div>
-        </nav>
-      </div>
-    </header>
+        </div>
+      )}
+    </nav>
   );
 };
 
