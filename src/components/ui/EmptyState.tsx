@@ -2,205 +2,156 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  Plus, 
+  Home, 
   Search, 
   FileText, 
-  MessageSquare, 
-  Home, 
+  AlertCircle, 
   Heart, 
-  AlertTriangle, 
-  FileQuestion,
-  LucideIcon 
+  MessageSquare, 
+  Calendar, 
+  Star, 
+  Bell,
+  Frown,
+  Loader
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
-// Tipos de empty states
-export type EmptyStateType = 
-  | 'search' 
-  | 'properties' 
-  | 'contracts' 
-  | 'messages' 
-  | 'favorites' 
-  | 'documents' 
+type EmptyStateType = 
+  | 'properties'
+  | 'search'
+  | 'favorites'
+  | 'messages'
+  | 'contracts'
+  | 'documents'
+  | 'reviews'
+  | 'notifications'
+  | 'appointments'
   | 'generic'
-  | 'error'
-  | 'no-results';
+  | 'error';
 
 interface EmptyStateProps {
-  type?: EmptyStateType;
+  type: EmptyStateType;
   title?: string;
   description?: string;
-  icon?: React.ReactNode;
-  actionLabel?: string;
-  onAction?: () => void;
-  secondaryActionLabel?: string;
-  onSecondaryAction?: () => void;
-  className?: string;
-  compact?: boolean;
+  ctaText?: string;
+  ctaAction?: () => void;
 }
 
+/**
+ * Componente para exibir estados vazios em diferentes seções da aplicação
+ */
 const EmptyState: React.FC<EmptyStateProps> = ({
-  type = 'generic',
+  type,
   title,
   description,
-  icon,
-  actionLabel,
-  onAction,
-  secondaryActionLabel,
-  onSecondaryAction,
-  className,
-  compact = false
+  ctaText,
+  ctaAction
 }) => {
-  // Configurações padrão baseadas no tipo
-  const getDefaultProps = () => {
-    switch (type) {
-      case 'search':
-        return {
-          icon: <Search className="h-8 w-8 text-kubico-gray-medium" />,
-          title: title || 'Nenhum resultado encontrado',
-          description: description || 'Tente ajustar seus filtros ou critérios de busca para encontrar o que procura.',
-          actionLabel: actionLabel || 'Limpar Filtros',
-          showAction: true
-        };
-      
-      case 'properties':
-        return {
-          icon: <Home className="h-8 w-8 text-kubico-gray-medium" />,
-          title: title || 'Nenhum imóvel encontrado',
-          description: description || 'Você ainda não cadastrou nenhum imóvel na plataforma.',
-          actionLabel: actionLabel || 'Adicionar Imóvel',
-          showAction: true
-        };
-      
-      case 'contracts':
-        return {
-          icon: <FileText className="h-8 w-8 text-kubico-gray-medium" />,
-          title: title || 'Nenhum contrato encontrado',
-          description: description || 'Você ainda não tem contratos cadastrados.',
-          actionLabel: actionLabel || 'Adicionar Contrato',
-          showAction: true
-        };
-      
-      case 'messages':
-        return {
-          icon: <MessageSquare className="h-8 w-8 text-kubico-gray-medium" />,
-          title: title || 'Nenhuma mensagem',
-          description: description || 'Você não possui mensagens no momento.',
-          actionLabel: actionLabel || null,
-          showAction: false
-        };
-      
-      case 'favorites':
-        return {
-          icon: <Heart className="h-8 w-8 text-kubico-gray-medium" />,
-          title: title || 'Nenhum favorito',
-          description: description || 'Você ainda não adicionou imóveis aos seus favoritos.',
-          actionLabel: actionLabel || 'Explorar Imóveis',
-          showAction: true
-        };
-      
-      case 'documents':
-        return {
-          icon: <FileQuestion className="h-8 w-8 text-kubico-gray-medium" />,
-          title: title || 'Nenhum documento',
-          description: description || 'Não há documentos disponíveis para este item.',
-          actionLabel: actionLabel || null,
-          showAction: false
-        };
-      
-      case 'error':
-        return {
-          icon: <AlertTriangle className="h-8 w-8 text-red-500" />,
-          title: title || 'Algo deu errado',
-          description: description || 'Ocorreu um erro ao carregar os dados. Tente novamente mais tarde.',
-          actionLabel: actionLabel || 'Tentar novamente',
-          showAction: true
-        };
-      
-      case 'no-results':
-        return {
-          icon: <Search className="h-8 w-8 text-kubico-gray-medium" />,
-          title: title || 'Sem resultados',
-          description: description || 'Não encontramos resultados para sua busca.',
-          actionLabel: actionLabel || 'Voltar',
-          showAction: true
-        };
-      
-      case 'generic':
-      default:
-        return {
-          icon: icon || <FileQuestion className="h-8 w-8 text-kubico-gray-medium" />,
-          title: title || 'Nenhum dado encontrado',
-          description: description || 'Não há dados disponíveis para exibir.',
-          actionLabel: actionLabel || null,
-          showAction: !!actionLabel
-        };
+  // Configurações padrão com base no tipo
+  const defaultConfigs = {
+    properties: {
+      icon: <Home className="h-10 w-10" />,
+      title: 'Nenhum imóvel encontrado',
+      description: 'Não encontramos imóveis que correspondam aos seus critérios. Tente ajustar seus filtros.',
+      ctaText: 'Limpar filtros'
+    },
+    search: {
+      icon: <Search className="h-10 w-10" />,
+      title: 'Nenhum resultado encontrado',
+      description: 'Não encontramos resultados para sua busca. Tente termos diferentes ou ajuste seus filtros.',
+      ctaText: 'Limpar busca'
+    },
+    favorites: {
+      icon: <Heart className="h-10 w-10" />,
+      title: 'Nenhum favorito ainda',
+      description: 'Você ainda não adicionou nenhum imóvel aos seus favoritos.',
+      ctaText: 'Explorar imóveis'
+    },
+    messages: {
+      icon: <MessageSquare className="h-10 w-10" />,
+      title: 'Sem mensagens',
+      description: 'Você não tem nenhuma mensagem no momento.',
+      ctaText: 'Entrar em contato'
+    },
+    contracts: {
+      icon: <FileText className="h-10 w-10" />,
+      title: 'Nenhum contrato',
+      description: 'Você ainda não possui nenhum contrato registrado.',
+      ctaText: 'Ver imóveis'
+    },
+    documents: {
+      icon: <FileText className="h-10 w-10" />,
+      title: 'Nenhum documento disponível',
+      description: 'Este imóvel ainda não possui documentos disponíveis para visualização.',
+      ctaText: 'Solicitar documentos'
+    },
+    reviews: {
+      icon: <Star className="h-10 w-10" />,
+      title: 'Sem avaliações',
+      description: 'Este imóvel ainda não recebeu avaliações.',
+      ctaText: 'Seja o primeiro a avaliar'
+    },
+    notifications: {
+      icon: <Bell className="h-10 w-10" />,
+      title: 'Nenhuma notificação',
+      description: 'Você não tem notificações no momento.',
+      ctaText: 'Configurar notificações'
+    },
+    appointments: {
+      icon: <Calendar className="h-10 w-10" />,
+      title: 'Nenhum agendamento',
+      description: 'Você ainda não possui agendamentos de visitas.',
+      ctaText: 'Agendar visita'
+    },
+    error: {
+      icon: <AlertCircle className="h-10 w-10" />,
+      title: 'Ocorreu um erro',
+      description: 'Não foi possível carregar os dados. Por favor, tente novamente mais tarde.',
+      ctaText: 'Tentar novamente'
+    },
+    generic: {
+      icon: <Frown className="h-10 w-10" />,
+      title: 'Nenhum conteúdo disponível',
+      description: 'Não há conteúdo disponível para exibição no momento.',
+      ctaText: 'Voltar'
     }
   };
-
-  const { 
-    icon: defaultIcon, 
-    title: defaultTitle, 
-    description: defaultDescription, 
-    actionLabel: defaultActionLabel,
-    showAction
-  } = getDefaultProps();
-
-  // Usar valores padrão se não forem fornecidos
-  const displayIcon = icon || defaultIcon;
-  const displayTitle = title || defaultTitle;
-  const displayDescription = description || defaultDescription;
-  const displayActionLabel = actionLabel || defaultActionLabel;
-
+  
+  // Mesclar configurações padrão com propriedades fornecidas
+  const config = defaultConfigs[type];
+  const finalTitle = title || config.title;
+  const finalDescription = description || config.description;
+  const finalCtaText = ctaText || config.ctaText;
+  
   return (
-    <div 
-      className={cn(
-        "flex flex-col items-center justify-center text-center bg-white border border-gray-100 rounded-xl shadow-sm",
-        compact ? "p-4" : "p-8",
-        className
-      )}
-    >
-      <div className={cn(
-        "mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-4",
-        compact ? "w-12 h-12" : "w-16 h-16"
-      )}>
-        {displayIcon}
+    <div className="flex flex-col items-center justify-center text-center py-12 px-4">
+      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-6 text-kubico-gray-medium">
+        {config.icon}
       </div>
+      <h3 className="text-lg font-medium text-gray-900 mb-2">{finalTitle}</h3>
+      <p className="text-kubico-gray-medium max-w-md mb-6">{finalDescription}</p>
       
-      <h3 className={cn(
-        "font-medium mb-2",
-        compact ? "text-base" : "text-lg"
-      )}>
-        {displayTitle}
-      </h3>
-      
-      <p className={cn(
-        "text-kubico-gray-medium mb-6 max-w-md", 
-        compact ? "text-sm" : ""
-      )}>
-        {displayDescription}
-      </p>
-      
-      {showAction && onAction && displayActionLabel && (
-        <div className="flex flex-wrap gap-3 justify-center">
-          <Button 
-            onClick={onAction}
-            className="bg-kubico-blue hover:bg-kubico-blue/90"
-          >
-            {type === 'properties' && <Plus className="h-4 w-4 mr-2" />}
-            {displayActionLabel}
-          </Button>
-          
-          {secondaryActionLabel && onSecondaryAction && (
-            <Button 
-              variant="outline" 
-              onClick={onSecondaryAction}
-            >
-              {secondaryActionLabel}
-            </Button>
-          )}
-        </div>
+      {(ctaText || config.ctaText) && ctaAction && (
+        <Button 
+          onClick={ctaAction}
+          className="bg-kubico-blue hover:bg-kubico-blue/90"
+        >
+          {finalCtaText}
+        </Button>
       )}
+    </div>
+  );
+};
+
+/**
+ * Componente para exibir estados de carregamento
+ */
+export const LoadingState: React.FC<{ text?: string }> = ({ text = 'Carregando...' }) => {
+  return (
+    <div className="flex flex-col items-center justify-center text-center py-12 px-4">
+      <div className="w-16 h-16 rounded-full bg-kubico-blue/5 flex items-center justify-center mb-6 text-kubico-blue">
+        <Loader className="h-8 w-8 animate-spin" />
+      </div>
+      <p className="text-kubico-gray-medium">{text}</p>
     </div>
   );
 };

@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Bed, Bath, Car, Maximize } from 'lucide-react';
+import { MapPin, Bed, Bath, SquareCode, Heart, ArrowRight, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from "@/hooks/use-toast";
+import { cn } from '@/lib/utils';
 
 interface PropertyCardProps {
   id: string;
@@ -19,7 +21,7 @@ interface PropertyCardProps {
   newProperty?: boolean;
 }
 
-const PropertyCard = ({
+const PropertyCard: React.FC<PropertyCardProps> = ({
   id,
   title,
   price,
@@ -32,88 +34,120 @@ const PropertyCard = ({
   imageUrl,
   featured = false,
   newProperty = false,
-}: PropertyCardProps) => {
+}) => {
+  const { toast } = useToast();
+  const [isFavorite, setIsFavorite] = useState(false);
+  
+  const toggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsFavorite(!isFavorite);
+    
+    toast({
+      title: isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos",
+      description: isFavorite ? 
+        "O imóvel foi removido da sua lista de favoritos." : 
+        "O imóvel foi adicionado à sua lista de favoritos.",
+    });
+  };
+  
   return (
-    <div className="group rounded-xl overflow-hidden bg-white hover-scale shadow-sm border border-gray-100 transition-all duration-300">
-      <div className="relative">
-        <Link to={`/properties/${id}`}>
-          <div className="relative h-60 overflow-hidden">
-            <img
-              src={imageUrl}
-              alt={title}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+    <div className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
+      <Link to={`/properties/${id}`}>
+        <div className="relative">
+          {/* Imagem */}
+          <div className="h-48 overflow-hidden">
+            <img 
+              src={imageUrl} 
+              alt={title} 
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </div>
-        </Link>
-        
-        {/* Badges */}
-        <div className="absolute top-4 left-4 flex gap-2">
-          {featured && (
-            <span className="chip bg-kubico-orange text-white">
-              Destaque
+          
+          {/* Botão de Favoritar */}
+          <button
+            onClick={toggleFavorite}
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center transition-colors hover:bg-white"
+            aria-label={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+          >
+            <Heart className={cn(
+              "h-4 w-4", 
+              isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"
+            )} />
+          </button>
+          
+          {/* Tags */}
+          <div className="absolute top-3 left-3 flex gap-2">
+            {featured && (
+              <span className="chip bg-kubico-orange text-white">
+                Destaque
+              </span>
+            )}
+            {newProperty && (
+              <span className="chip bg-kubico-green text-white">
+                Novo
+              </span>
+            )}
+          </div>
+          
+          {/* Tipo de Imóvel */}
+          <div className="absolute bottom-3 left-3">
+            <span className="chip bg-white/90 backdrop-blur-sm text-kubico-gray-dark">
+              {type}
             </span>
-          )}
-          {newProperty && (
-            <span className="chip bg-kubico-green text-white">
-              Novo
-            </span>
-          )}
-        </div>
-        
-        {/* Favorite button */}
-        <button className="absolute top-4 right-4 p-2 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition duration-300 text-kubico-gray-dark hover:text-red-500">
-          <Heart className="h-5 w-5" />
-        </button>
-        
-        {/* Property type chip */}
-        <div className="absolute bottom-4 left-4">
-          <span className="chip bg-white/90 backdrop-blur-sm text-kubico-gray-dark">
-            {type}
-          </span>
-        </div>
-      </div>
-      
-      <div className="p-5">
-        <Link to={`/properties/${id}`}>
-          <h3 className="font-semibold text-lg mb-1 transition-colors hover:text-kubico-blue">{title}</h3>
-        </Link>
-        <p className="text-kubico-gray-dark text-sm mb-3">{location}</p>
-        <p className="text-kubico-blue font-semibold text-xl mb-4">
-          {price.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
-            minimumFractionDigits: 0,
-          })}
-        </p>
-        
-        {/* Features */}
-        <div className="grid grid-cols-4 gap-2 py-3 border-t border-gray-100">
-          <div className="property-feature">
-            <Bed className="h-4 w-4" />
-            <span>{bedrooms}</span>
           </div>
-          <div className="property-feature">
-            <Bath className="h-4 w-4" />
-            <span>{bathrooms}</span>
-          </div>
-          <div className="property-feature">
-            <Car className="h-4 w-4" />
-            <span>{parkingSpaces}</span>
-          </div>
-          <div className="property-feature">
-            <Maximize className="h-4 w-4" />
-            <span>{area}m²</span>
+          
+          {/* Preço */}
+          <div className="absolute bottom-0 right-0 bg-kubico-blue text-white py-1 px-3 rounded-tl-lg font-medium">
+            {price.toLocaleString('pt-BR', {
+              style: 'currency',
+              currency: 'BRL',
+              minimumFractionDigits: 0,
+            })}
           </div>
         </div>
         
-        {/* CTA */}
-        <div className="pt-4">
-          <Link to={`/properties/${id}`}>
-            <Button className="w-full" variant="outline">Ver Detalhes</Button>
-          </Link>
+        {/* Conteúdo */}
+        <div className="p-4">
+          <h3 className="font-semibold line-clamp-1 group-hover:text-kubico-blue transition-colors">
+            {title}
+          </h3>
+          
+          <p className="text-kubico-gray-dark text-sm mt-1 mb-3 flex items-center">
+            <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+            <span className="line-clamp-1">{location}</span>
+          </p>
+          
+          {/* Características */}
+          <div className="flex justify-between text-sm text-kubico-gray-dark">
+            <div className="flex items-center">
+              <Bed className="h-4 w-4 mr-1" />
+              <span>{bedrooms}</span>
+            </div>
+            <div className="flex items-center">
+              <Bath className="h-4 w-4 mr-1" />
+              <span>{bathrooms}</span>
+            </div>
+            <div className="flex items-center">
+              <SquareCode className="h-4 w-4 mr-1" />
+              <span>{area} m²</span>
+            </div>
+          </div>
+          
+          {/* Botão */}
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-between text-kubico-blue hover:text-kubico-blue/80 hover:bg-kubico-blue/5 p-0 h-6"
+            >
+              <span>Ver Detalhes</span>
+              <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
         </div>
-      </div>
+      </Link>
     </div>
   );
 };

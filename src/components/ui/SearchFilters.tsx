@@ -1,237 +1,152 @@
 
 import React, { useState } from 'react';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search, MapPin, ArrowRight } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 const SearchFilters = () => {
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [filters, setFilters] = useState({
-    type: '',
-    priceMin: '',
-    priceMax: '',
-    bedrooms: '',
-    bathrooms: '',
-    area: '',
-    features: [] as string[]
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleFeatureToggle = (feature: string) => {
-    setFilters(prev => {
-      const features = [...prev.features];
-      const index = features.indexOf(feature);
-      
-      if (index === -1) {
-        features.push(feature);
-      } else {
-        features.splice(index, 1);
-      }
-      
-      return { ...prev, features };
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [location, setLocation] = useState('');
+  const [propertyType, setPropertyType] = useState('');
+  const [purpose, setPurpose] = useState('buy');
+  const [priceRange, setPriceRange] = useState('');
+  
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!location) {
+      toast({
+        title: "Localização necessária",
+        description: "Por favor, informe uma localização para a busca.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Em uma aplicação real, construiríamos parâmetros de consulta
+    // Por enquanto, apenas simularemos a busca
+    console.log('Searching with:', { location, propertyType, purpose, priceRange });
+    
+    // Construindo os parâmetros de consulta
+    const params = new URLSearchParams();
+    if (location) params.append('location', location);
+    if (propertyType) params.append('type', propertyType);
+    params.append('purpose', purpose); // sempre terá um valor
+    if (priceRange) params.append('price', priceRange);
+    
+    // Navegar para a página de resultados com os parâmetros
+    navigate(`/properties?${params.toString()}`);
+    
+    // Feedback visual
+    toast({
+      title: "Busca realizada",
+      description: "Encontramos imóveis que correspondem à sua busca.",
     });
   };
-
-  const resetFilters = () => {
-    setFilters({
-      type: '',
-      priceMin: '',
-      priceMax: '',
-      bedrooms: '',
-      bathrooms: '',
-      area: '',
-      features: []
-    });
-  };
-
+  
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden transition-all duration-300">
-      {/* Basic search */}
-      <div className="p-4">
-        <div className="flex flex-wrap md:flex-nowrap gap-3">
-          <div className="w-full">
+    <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+      <form onSubmit={handleSearch}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
+          {/* Localização */}
+          <div className="xl:col-span-2">
             <div className="relative">
-              <input
-                type="text"
-                placeholder="Buscar por endereço, bairro ou cidade"
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg py-3 pl-10 pr-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-kubico-blue/20 focus:border-kubico-blue"
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-kubico-gray-medium h-4 w-4" />
+              <Input
+                placeholder="Cidade, bairro ou região..."
+                className="pl-10 bg-gray-50"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
               />
-              <Search className="absolute left-3 top-3.5 h-4 w-4 text-gray-500" />
             </div>
           </div>
-          <div className="flex space-x-2">
+          
+          {/* Tipo de Imóvel */}
+          <div>
+            <Select value={propertyType} onValueChange={setPropertyType}>
+              <SelectTrigger className="bg-gray-50">
+                <SelectValue placeholder="Tipo de Imóvel" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todos os tipos</SelectItem>
+                <SelectItem value="apartment">Apartamento</SelectItem>
+                <SelectItem value="house">Casa</SelectItem>
+                <SelectItem value="commercial">Comercial</SelectItem>
+                <SelectItem value="land">Terreno</SelectItem>
+                <SelectItem value="rural">Rural</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Finalidade */}
+          <div className="flex space-x-1">
             <Button
               type="button"
-              variant="outline"
-              className="flex-shrink-0"
-              onClick={() => setShowAdvanced(!showAdvanced)}
+              variant={purpose === 'buy' ? 'default' : 'outline'}
+              className={`flex-1 ${purpose === 'buy' ? 'bg-kubico-blue hover:bg-kubico-blue/90' : ''}`}
+              onClick={() => setPurpose('buy')}
             >
-              <SlidersHorizontal className="h-4 w-4 mr-2" />
-              Filtros
+              Comprar
             </Button>
-            <Button type="submit" className="bg-kubico-blue hover:bg-kubico-blue/90 flex-shrink-0">
-              <Search className="h-4 w-4 mr-2" />
-              Buscar
-            </Button>
-          </div>
-        </div>
-      </div>
-      
-      {/* Advanced filters */}
-      {showAdvanced && (
-        <div className="p-4 pt-0 border-t border-gray-100 animate-fade-in">
-          <div className="flex justify-between items-center mb-4 pt-4">
-            <h3 className="font-medium">Filtros Avançados</h3>
-            <button
+            <Button
               type="button"
-              onClick={resetFilters}
-              className="text-sm text-kubico-blue hover:text-kubico-blue/80 flex items-center"
+              variant={purpose === 'rent' ? 'default' : 'outline'}
+              className={`flex-1 ${purpose === 'rent' ? 'bg-kubico-blue hover:bg-kubico-blue/90' : ''}`}
+              onClick={() => setPurpose('rent')}
             >
-              <X className="h-3 w-3 mr-1" />
-              Limpar
-            </button>
+              Alugar
+            </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Property Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tipo de Imóvel
-              </label>
-              <select
-                name="type"
-                value={filters.type}
-                onChange={handleChange}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-kubico-blue/20 focus:border-kubico-blue"
-              >
-                <option value="">Todos os tipos</option>
-                <option value="apartment">Apartamento</option>
-                <option value="house">Casa</option>
-                <option value="commercial">Comercial</option>
-                <option value="land">Terreno</option>
-              </select>
-            </div>
-            
-            {/* Price Range */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Faixa de Preço
-              </label>
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  name="priceMin"
-                  placeholder="Mínimo"
-                  value={filters.priceMin}
-                  onChange={handleChange}
-                  className="w-1/2 bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-kubico-blue/20 focus:border-kubico-blue"
-                />
-                <input
-                  type="text"
-                  name="priceMax"
-                  placeholder="Máximo"
-                  value={filters.priceMax}
-                  onChange={handleChange}
-                  className="w-1/2 bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-kubico-blue/20 focus:border-kubico-blue"
-                />
-              </div>
-            </div>
-            
-            {/* Bedrooms */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quartos
-              </label>
-              <select
-                name="bedrooms"
-                value={filters.bedrooms}
-                onChange={handleChange}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-kubico-blue/20 focus:border-kubico-blue"
-              >
-                <option value="">Qualquer</option>
-                <option value="1">1+</option>
-                <option value="2">2+</option>
-                <option value="3">3+</option>
-                <option value="4">4+</option>
-                <option value="5">5+</option>
-              </select>
-            </div>
-            
-            {/* Bathrooms */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Banheiros
-              </label>
-              <select
-                name="bathrooms"
-                value={filters.bathrooms}
-                onChange={handleChange}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-kubico-blue/20 focus:border-kubico-blue"
-              >
-                <option value="">Qualquer</option>
-                <option value="1">1+</option>
-                <option value="2">2+</option>
-                <option value="3">3+</option>
-                <option value="4">4+</option>
-              </select>
-            </div>
-            
-            {/* Area */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Área (m²)
-              </label>
-              <input
-                type="text"
-                name="area"
-                placeholder="Área mínima"
-                value={filters.area}
-                onChange={handleChange}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-kubico-blue/20 focus:border-kubico-blue"
-              />
-            </div>
+          {/* Preço */}
+          <div className="xl:hidden">
+            <Select value={priceRange} onValueChange={setPriceRange}>
+              <SelectTrigger className="bg-gray-50">
+                <SelectValue placeholder="Faixa de Preço" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Qualquer preço</SelectItem>
+                {purpose === 'buy' ? (
+                  <>
+                    <SelectItem value="0-500000">Até R$ 500.000</SelectItem>
+                    <SelectItem value="500000-1000000">R$ 500.000 - R$ 1.000.000</SelectItem>
+                    <SelectItem value="1000000-2000000">R$ 1.000.000 - R$ 2.000.000</SelectItem>
+                    <SelectItem value="2000000-9999999999">Acima de R$ 2.000.000</SelectItem>
+                  </>
+                ) : (
+                  <>
+                    <SelectItem value="0-2000">Até R$ 2.000</SelectItem>
+                    <SelectItem value="2000-5000">R$ 2.000 - R$ 5.000</SelectItem>
+                    <SelectItem value="5000-10000">R$ 5.000 - R$ 10.000</SelectItem>
+                    <SelectItem value="10000-9999999999">Acima de R$ 10.000</SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
           </div>
           
-          {/* Features */}
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Características
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {['pool', 'garden', 'gym', 'security', 'garage', 'furnished'].map((feature) => {
-                const labels: Record<string, string> = {
-                  pool: 'Piscina',
-                  garden: 'Jardim',
-                  gym: 'Academia',
-                  security: 'Segurança 24h',
-                  garage: 'Garagem',
-                  furnished: 'Mobiliado'
-                };
-                
-                const isActive = filters.features.includes(feature);
-                
-                return (
-                  <button
-                    key={feature}
-                    type="button"
-                    onClick={() => handleFeatureToggle(feature)}
-                    className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-                      isActive
-                        ? 'bg-kubico-blue text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {labels[feature]}
-                  </button>
-                );
-              })}
-            </div>
+          {/* Botão de busca */}
+          <div className="xl:col-start-5 xl:col-span-1">
+            <Button 
+              type="submit" 
+              className="w-full bg-kubico-blue hover:bg-kubico-blue/90"
+            >
+              <Search className="mr-2 h-4 w-4" />
+              Buscar Imóveis
+            </Button>
           </div>
         </div>
-      )}
+      </form>
     </div>
   );
 };
