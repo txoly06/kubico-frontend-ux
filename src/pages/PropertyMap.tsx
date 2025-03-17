@@ -130,6 +130,21 @@ const PropertyMap = () => {
   const renderPropertyMarker = useCallback((property: any) => {
     const isSelected = selectedProperty === property.id;
     
+    // Posicionamento fixo para cada propriedade baseado em seu ID
+    // Isso garante que eles não se sobreponham e sejam distribuídos pelo mapa
+    const getPosition = () => {
+      const id = parseInt(property.id);
+      const baseTop = 20;
+      const baseLeft = 20;
+      const spread = 15;
+      return {
+        top: `${baseTop + ((id * 10) % 60)}%`,
+        left: `${baseLeft + ((id * 15) % 70)}%`,
+      };
+    };
+    
+    const position = getPosition();
+    
     return (
       <div
         key={property.id}
@@ -137,8 +152,8 @@ const PropertyMap = () => {
           isSelected ? 'z-50 scale-125' : 'z-10'
         }`}
         style={{
-          left: `${((property.longitude + 46.7) * 800) % 90 + 5}%`,
-          top: `${((property.latitude + 23.6) * 800) % 80 + 10}%`,
+          top: position.top,
+          left: position.left,
         }}
         onClick={() => setSelectedProperty(property.id)}
       >
@@ -520,7 +535,9 @@ const PropertyMap = () => {
             ) : (
               <>
                 {/* Renderizar marcadores de imóveis */}
-                {properties.map(renderPropertyMarker)}
+                <div className="absolute inset-0 z-10">
+                  {properties.map(renderPropertyMarker)}
+                </div>
               </>
             )}
           </div>

@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { LayoutGrid, LayoutList, MapPin, ArrowUpDown, Search } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -126,6 +127,7 @@ const propertiesData = [
 ];
 
 const Properties = () => {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortOption, setSortOption] = useState('relevance');
   const [properties, setProperties] = useState(propertiesData);
@@ -219,7 +221,7 @@ const Properties = () => {
   };
 
   const handlePropertySelect = (propertyId: string) => {
-    window.location.href = `/properties/${propertyId}`;
+    navigate(`/properties/${propertyId}`);
   };
   
   return (
@@ -301,7 +303,7 @@ const Properties = () => {
               <Button 
                 variant="outline" 
                 className="hidden md:flex items-center"
-                onClick={() => setShowMap(true)}
+                onClick={() => navigate('/properties/map')}
               >
                 <MapPin className="h-4 w-4 mr-2" />
                 Ver no Mapa
