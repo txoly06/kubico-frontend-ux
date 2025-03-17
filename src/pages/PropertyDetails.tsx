@@ -278,7 +278,7 @@ const PropertyDetails = () => {
                 <TabsContent value="virtual-tour" className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
                   <h3 className="text-xl font-semibold mb-4">Tour Virtual</h3>
                   <div className="relative rounded-xl overflow-hidden h-[400px] bg-gray-100">
-                    <Property360Viewer propertyId={property.id} />
+                    <Property360Viewer imageUrls={property.images} autoRotate={true} />
                   </div>
                 </TabsContent>
               </Tabs>
