@@ -1,17 +1,18 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Home, User, Heart, FileText, Bell, Settings, LogOut, Calendar, Search, Plus, Filter, Grid3X3, List } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import DashboardPropertiesList from '@/components/ui/DashboardPropertiesList';
 import DashboardFavorites from '@/components/ui/DashboardFavorites';
 import DashboardProfile from '@/components/ui/DashboardProfile';
 import DashboardContracts from '@/components/ui/DashboardContracts';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
+import DashboardAnalytics from '@/components/ui/DashboardAnalytics';
+import UserDashboard, { UserType } from '@/components/ui/UserDashboard';
+import { Suspense, lazy } from 'react';
+import LoadingState from '@/components/ui/LoadingState';
+
+// Import usando lazy loading para otimização
+const NotificationsPanel = lazy(() => import('@/components/ui/NotificationsPanel'));
 
 // Dados de exemplo do usuário
 const userData = {
@@ -35,8 +36,16 @@ const DashboardHeader = ({ title, subtitle }: { title: string, subtitle: string 
 );
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('properties');
+  const [userType, setUserType] = useState<UserType>('premium');
+  
+  // Função para alternar entre tipos de usuário (apenas para demonstração)
+  const toggleUserType = () => {
+    const types: UserType[] = ['regular', 'premium', 'agent', 'admin'];
+    const currentIndex = types.indexOf(userType);
+    const nextIndex = (currentIndex + 1) % types.length;
+    setUserType(types[nextIndex]);
+  };
   
   // Renderização condicional do conteúdo com base na tab ativa
   const renderContent = () => {
@@ -49,8 +58,21 @@ const Dashboard = () => {
         return <DashboardContracts />;
       case 'profile':
         return <DashboardProfile />;
+      case 'analytics':
+        return <DashboardAnalytics userType={userType} />;
+      case 'notifications':
+        return (
+          <Suspense fallback={<LoadingState type="card" count={3} />}>
+            <NotificationsPanel />
+          </Suspense>
+        );
       default:
-        return <DashboardPropertiesList />;
+        return (
+          <div className="bg-white rounded-xl p-8 shadow-sm">
+            <h3 className="text-lg font-medium mb-4">Funcionalidade em desenvolvimento</h3>
+            <p className="text-kubico-gray-medium mb-4">Esta seção está sendo implementada e estará disponível em breve.</p>
+          </div>
+        );
     }
   };
   
@@ -60,135 +82,33 @@ const Dashboard = () => {
       
       <main className="flex-grow pt-8 pb-16 bg-gray-50">
         <div className="container mx-auto px-4">
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={toggleUserType}
+              className="bg-kubico-blue text-white px-4 py-2 rounded-lg text-sm hover:bg-kubico-blue/90 transition-colors"
+            >
+              Modo: {userType === 'regular' ? 'Usuário Regular' : 
+                     userType === 'premium' ? 'Usuário Premium' : 
+                     userType === 'agent' ? 'Corretor' : 'Administrador'}
+            </button>
+          </div>
+          
           <div className="flex flex-col md:flex-row gap-8">
             {/* Sidebar do Dashboard */}
-            <aside className="md:w-64 flex-shrink-0">
-              <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm mb-6">
-                <div className="flex items-center space-x-3 mb-6">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={userData.avatar} alt={userData.name} />
-                    <AvatarFallback>{userData.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h2 className="font-semibold">{userData.name}</h2>
-                    <p className="text-sm text-kubico-gray-medium">{userData.role}</p>
-                  </div>
-                </div>
-                
-                <div className="space-y-1">
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start font-normal",
-                      activeTab === 'properties' && "bg-kubico-blue/10 text-kubico-blue font-medium"
-                    )}
-                    onClick={() => setActiveTab('properties')}
-                  >
-                    <Home className="mr-2 h-4 w-4" />
-                    Meus Imóveis
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start font-normal",
-                      activeTab === 'favorites' && "bg-kubico-blue/10 text-kubico-blue font-medium"
-                    )}
-                    onClick={() => setActiveTab('favorites')}
-                  >
-                    <Heart className="mr-2 h-4 w-4" />
-                    Favoritos
-                    <span className="ml-auto bg-gray-100 text-gray-600 text-xs rounded-full px-2 py-0.5">
-                      {userData.favorites}
-                    </span>
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start font-normal",
-                      activeTab === 'contracts' && "bg-kubico-blue/10 text-kubico-blue font-medium"
-                    )}
-                    onClick={() => setActiveTab('contracts')}
-                  >
-                    <FileText className="mr-2 h-4 w-4" />
-                    Contratos
-                    <span className="ml-auto bg-gray-100 text-gray-600 text-xs rounded-full px-2 py-0.5">
-                      {userData.contracts}
-                    </span>
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start font-normal",
-                      activeTab === 'notifications' && "bg-kubico-blue/10 text-kubico-blue font-medium"
-                    )}
-                    onClick={() => setActiveTab('notifications')}
-                  >
-                    <Bell className="mr-2 h-4 w-4" />
-                    Notificações
-                    <span className="ml-auto bg-kubico-blue/10 text-kubico-blue text-xs font-medium rounded-full px-2 py-0.5">
-                      {userData.notifications}
-                    </span>
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start font-normal",
-                      activeTab === 'profile' && "bg-kubico-blue/10 text-kubico-blue font-medium"
-                    )}
-                    onClick={() => setActiveTab('profile')}
-                  >
-                    <User className="mr-2 h-4 w-4" />
-                    Meu Perfil
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start font-normal",
-                      activeTab === 'settings' && "bg-kubico-blue/10 text-kubico-blue font-medium"
-                    )}
-                    onClick={() => setActiveTab('settings')}
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    Configurações
-                  </Button>
-                </div>
-                
-                <div className="pt-6 mt-6 border-t border-gray-100">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start font-normal text-red-500 hover:text-red-600 hover:bg-red-50"
-                    onClick={() => navigate('/')}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sair
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-r from-kubico-blue to-kubico-blue/80 text-white rounded-xl p-6 shadow-sm">
-                <h3 className="font-semibold mb-2">Precisa de ajuda?</h3>
-                <p className="text-sm text-white/80 mb-4">Nossa equipe está disponível para atender você e responder qualquer dúvida.</p>
-                <Button
-                  className="w-full bg-white text-kubico-blue hover:bg-white/90"
-                  onClick={() => navigate('/contact')}
-                >
-                  Fale Conosco
-                </Button>
-              </div>
-            </aside>
+            <UserDashboard 
+              userType={userType} 
+              userData={userData} 
+              activeTab={activeTab} 
+              setActiveTab={setActiveTab} 
+            />
             
             {/* Conteúdo principal do Dashboard */}
             <div className="flex-grow">
               {/* Título e subtítulo dinâmicos com base na aba ativa */}
               {activeTab === 'properties' && (
                 <DashboardHeader 
-                  title="Meus Imóveis" 
-                  subtitle="Gerencie seus imóveis cadastrados na plataforma"
+                  title={userType === 'admin' ? "Gestão de Imóveis" : "Meus Imóveis"} 
+                  subtitle={userType === 'admin' ? "Gerencie os imóveis cadastrados na plataforma" : "Gerencie seus imóveis cadastrados na plataforma"}
                 />
               )}
               {activeTab === 'favorites' && (
@@ -207,6 +127,18 @@ const Dashboard = () => {
                 <DashboardHeader 
                   title="Meu Perfil" 
                   subtitle="Visualize e atualize suas informações pessoais"
+                />
+              )}
+              {activeTab === 'analytics' && (
+                <DashboardHeader 
+                  title={userType === 'admin' ? "Relatórios" : "Análises"} 
+                  subtitle={userType === 'admin' ? "Relatórios e métricas gerais da plataforma" : "Estatísticas e desempenho dos seus anúncios"}
+                />
+              )}
+              {activeTab === 'notifications' && (
+                <DashboardHeader 
+                  title="Notificações" 
+                  subtitle="Veja todas as suas notificações e alertas"
                 />
               )}
               

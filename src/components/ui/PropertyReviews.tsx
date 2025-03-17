@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Star, MessageSquare, ThumbsUp, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -5,27 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from "@/hooks/use-toast";
 import EmptyState from './EmptyState';
-
-interface Review {
-  id: string;
-  userName: string;
-  userAvatar?: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-  likes: number;
-  userLiked: boolean;
-  replies?: Reply[];
-  showReplies?: boolean;
-}
-
-interface Reply {
-  id: string;
-  userName: string;
-  userAvatar?: string;
-  comment: string;
-  createdAt: string;
-}
+import ReviewItem from './ReviewItem';
+import ReviewForm from './ReviewForm';
+import { ReviewData, ReplyData } from '@/types/review';
 
 interface PropertyReviewsProps {
   propertyId: string;
@@ -33,7 +16,7 @@ interface PropertyReviewsProps {
 
 const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId }) => {
   const { toast } = useToast();
-  const [reviews, setReviews] = useState<Review[]>([
+  const [reviews, setReviews] = useState<ReviewData[]>([
     {
       id: '1',
       userName: 'Pedro Oliveira',
@@ -88,17 +71,6 @@ const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId }) => {
   const [newReplies, setNewReplies] = useState<{ [key: string]: string }>({});
   const [showReviewForm, setShowReviewForm] = useState(false);
   
-  const renderStars = (rating: number, interactive = false) => {
-    return Array(5).fill(0).map((_, i) => (
-      <Star 
-        key={i} 
-        className={`h-5 w-5 ${i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} 
-        onClick={interactive ? () => setNewReview({...newReview, rating: i + 1}) : undefined}
-        style={interactive ? { cursor: 'pointer' } : {}}
-      />
-    ));
-  };
-  
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
     return new Date(dateString).toLocaleDateString('pt-BR', options);
@@ -136,7 +108,7 @@ const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId }) => {
     
     const currentDate = new Date().toISOString().split('T')[0];
     
-    const newReviewObj: Review = {
+    const newReviewObj: ReviewData = {
       id: `review-${Date.now()}`,
       userName: "Você",
       userAvatar: "https://randomuser.me/api/portraits/lego/1.jpg", // Avatar padrão para o usuário atual
@@ -171,7 +143,7 @@ const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId }) => {
     
     const currentDate = new Date().toISOString().split('T')[0];
     
-    const newReplyObj: Reply = {
+    const newReplyObj: ReplyData = {
       id: `reply-${Date.now()}`,
       userName: "Você",
       userAvatar: "https://randomuser.me/api/portraits/lego/1.jpg", // Avatar padrão para o usuário atual
@@ -210,148 +182,27 @@ const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId }) => {
       </div>
       
       {showReviewForm && (
-        <div className="bg-gray-50 rounded-lg p-6 mb-6 border border-gray-200">
-          <h3 className="text-lg font-medium mb-4">Sua avaliação</h3>
-          
-          <div className="mb-4">
-            <p className="mb-2 text-kubico-gray-medium">Classificação</p>
-            <div className="flex items-center">
-              {renderStars(newReview.rating, true)}
-              <span className="ml-2 text-kubico-gray-medium">
-                {newReview.rating} de 5
-              </span>
-            </div>
-          </div>
-          
-          <div className="mb-4">
-            <p className="mb-2 text-kubico-gray-medium">Comentário</p>
-            <Textarea 
-              placeholder="Compartilhe sua experiência com este imóvel..." 
-              className="resize-none"
-              rows={4}
-              value={newReview.comment}
-              onChange={(e) => setNewReview({...newReview, comment: e.target.value})}
-            />
-          </div>
-          
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => setShowReviewForm(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSubmitReview}>
-              Enviar avaliação
-            </Button>
-          </div>
-        </div>
+        <ReviewForm 
+          newReview={newReview}
+          setNewReview={setNewReview}
+          onCancel={() => setShowReviewForm(false)}
+          onSubmit={handleSubmitReview}
+        />
       )}
       
       {reviews.length > 0 ? (
         <div className="space-y-6">
           {reviews.map((review) => (
-            <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0">
-              <div className="flex items-start">
-                <Avatar className="h-10 w-10 mr-3">
-                  <AvatarImage src={review.userAvatar} alt={review.userName} />
-                  <AvatarFallback>{review.userName.charAt(0)}</AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-grow">
-                  <div className="flex flex-wrap items-center justify-between">
-                    <div>
-                      <h4 className="font-medium">{review.userName}</h4>
-                      <div className="flex items-center mt-1">
-                        <div className="flex">
-                          {renderStars(review.rating)}
-                        </div>
-                        <span className="text-sm text-kubico-gray-medium ml-2">
-                          {formatDate(review.createdAt)}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className={`text-sm ${review.userLiked ? 'text-kubico-blue' : 'text-kubico-gray-medium'}`}
-                      onClick={() => handleLike(review.id)}
-                    >
-                      <ThumbsUp className={`h-4 w-4 mr-1 ${review.userLiked ? 'fill-kubico-blue' : ''}`} />
-                      <span>{review.likes}</span>
-                    </Button>
-                  </div>
-                  
-                  <p className="mt-3 text-kubico-gray-dark">{review.comment}</p>
-                  
-                  <div className="mt-3">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-sm text-kubico-gray-medium hover:text-kubico-blue p-0 h-auto"
-                      onClick={() => toggleReplies(review.id)}
-                    >
-                      <MessageSquare className="h-4 w-4 mr-1" />
-                      <span>
-                        {review.replies && review.replies.length > 0 
-                          ? `${review.replies.length} ${review.replies.length === 1 ? 'resposta' : 'respostas'}` 
-                          : 'Responder'}
-                      </span>
-                      {review.showReplies ? (
-                        <ChevronUp className="h-4 w-4 ml-1" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 ml-1" />
-                      )}
-                    </Button>
-                    
-                    {review.showReplies && (
-                      <div className="mt-4 pl-4 border-l-2 border-gray-100 space-y-4">
-                        {review.replies && review.replies.length > 0 && review.replies.map((reply) => (
-                          <div key={reply.id} className="flex items-start">
-                            <Avatar className="h-8 w-8 mr-3">
-                              <AvatarImage src={reply.userAvatar} alt={reply.userName} />
-                              <AvatarFallback>{reply.userName.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            
-                            <div>
-                              <div className="flex items-center">
-                                <h5 className="font-medium">{reply.userName}</h5>
-                                <span className="text-xs text-kubico-gray-medium ml-2">
-                                  {formatDate(reply.createdAt)}
-                                </span>
-                              </div>
-                              <p className="mt-1 text-sm text-kubico-gray-dark">{reply.comment}</p>
-                            </div>
-                          </div>
-                        ))}
-                        
-                        <div className="flex items-center mt-3">
-                          <Avatar className="h-8 w-8 mr-3">
-                            <AvatarImage src="https://randomuser.me/api/portraits/lego/1.jpg" alt="Você" />
-                            <AvatarFallback>V</AvatarFallback>
-                          </Avatar>
-                          <div className="relative flex-grow">
-                            <Textarea 
-                              placeholder="Escreva sua resposta..." 
-                              className="resize-none pr-10"
-                              rows={1}
-                              value={newReplies[review.id] || ''}
-                              onChange={(e) => setNewReplies({...newReplies, [review.id]: e.target.value})}
-                            />
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-kubico-blue"
-                              onClick={() => handleSubmitReply(review.id)}
-                            >
-                              <Send className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ReviewItem 
+              key={review.id}
+              review={review}
+              replyText={newReplies[review.id] || ''}
+              onReplyChange={(text) => setNewReplies({...newReplies, [review.id]: text})}
+              onToggleReplies={() => toggleReplies(review.id)}
+              onLike={() => handleLike(review.id)}
+              onSubmitReply={() => handleSubmitReply(review.id)}
+              formatDate={formatDate}
+            />
           ))}
         </div>
       ) : (
