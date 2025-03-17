@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Star, MessageSquare, ThumbsUp, User, ChevronDown, ChevronUp, Send } from 'lucide-react';
+import { Star, MessageSquare, ThumbsUp, ChevronDown, ChevronUp, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -86,9 +85,9 @@ const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId }) => {
     comment: ''
   });
   
+  const [newReplies, setNewReplies] = useState<{ [key: string]: string }>({});
   const [showReviewForm, setShowReviewForm] = useState(false);
   
-  // Função para renderizar as estrelas baseado na avaliação
   const renderStars = (rating: number, interactive = false) => {
     return Array(5).fill(0).map((_, i) => (
       <Star 
@@ -100,13 +99,11 @@ const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId }) => {
     ));
   };
   
-  // Função para formatar data
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
     return new Date(dateString).toLocaleDateString('pt-BR', options);
   };
   
-  // Função para alternar a visualização de respostas
   const toggleReplies = (reviewId: string) => {
     setReviews(reviews.map(review => 
       review.id === reviewId 
@@ -115,7 +112,6 @@ const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId }) => {
     ));
   };
   
-  // Função para curtir uma avaliação
   const handleLike = (reviewId: string) => {
     setReviews(reviews.map(review => 
       review.id === reviewId 
@@ -128,7 +124,6 @@ const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId }) => {
     ));
   };
   
-  // Função para enviar uma nova avaliação
   const handleSubmitReview = () => {
     if (newReview.comment.trim() === '') {
       toast({
@@ -161,6 +156,44 @@ const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId }) => {
     toast({
       title: "Avaliação enviada",
       description: "Obrigado por compartilhar sua opinião sobre este imóvel!",
+    });
+  };
+  
+  const handleSubmitReply = (reviewId: string) => {
+    if (!newReplies[reviewId] || newReplies[reviewId].trim() === '') {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, escreva um comentário para sua resposta.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const currentDate = new Date().toISOString().split('T')[0];
+    
+    const newReplyObj: Reply = {
+      id: `reply-${Date.now()}`,
+      userName: "Você",
+      userAvatar: "https://randomuser.me/api/portraits/lego/1.jpg", // Avatar padrão para o usuário atual
+      comment: newReplies[reviewId],
+      createdAt: currentDate
+    };
+    
+    setReviews(reviews.map(review => 
+      review.id === reviewId 
+        ? {
+            ...review, 
+            replies: [...(review.replies || []), newReplyObj],
+            showReplies: true
+          } 
+        : review
+    ));
+    
+    setNewReplies(prev => ({...prev, [reviewId]: ''}));
+    
+    toast({
+      title: "Resposta enviada",
+      description: "Sua resposta foi publicada com sucesso!",
     });
   };
   
@@ -249,68 +282,73 @@ const PropertyReviews: React.FC<PropertyReviewsProps> = ({ propertyId }) => {
                   
                   <p className="mt-3 text-kubico-gray-dark">{review.comment}</p>
                   
-                  {review.replies && review.replies.length > 0 && (
-                    <div className="mt-3">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-sm text-kubico-gray-medium hover:text-kubico-blue p-0 h-auto"
-                        onClick={() => toggleReplies(review.id)}
-                      >
-                        <MessageSquare className="h-4 w-4 mr-1" />
-                        <span>{review.replies.length} {review.replies.length === 1 ? 'resposta' : 'respostas'}</span>
-                        {review.showReplies ? (
-                          <ChevronUp className="h-4 w-4 ml-1" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4 ml-1" />
-                        )}
-                      </Button>
-                      
-                      {review.showReplies && (
-                        <div className="mt-4 pl-4 border-l-2 border-gray-100 space-y-4">
-                          {review.replies.map((reply) => (
-                            <div key={reply.id} className="flex items-start">
-                              <Avatar className="h-8 w-8 mr-3">
-                                <AvatarImage src={reply.userAvatar} alt={reply.userName} />
-                                <AvatarFallback>{reply.userName.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              
-                              <div>
-                                <div className="flex items-center">
-                                  <h5 className="font-medium">{reply.userName}</h5>
-                                  <span className="text-xs text-kubico-gray-medium ml-2">
-                                    {formatDate(reply.createdAt)}
-                                  </span>
-                                </div>
-                                <p className="mt-1 text-sm text-kubico-gray-dark">{reply.comment}</p>
-                              </div>
-                            </div>
-                          ))}
-                          
-                          <div className="flex items-center mt-3">
+                  <div className="mt-3">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-sm text-kubico-gray-medium hover:text-kubico-blue p-0 h-auto"
+                      onClick={() => toggleReplies(review.id)}
+                    >
+                      <MessageSquare className="h-4 w-4 mr-1" />
+                      <span>
+                        {review.replies && review.replies.length > 0 
+                          ? `${review.replies.length} ${review.replies.length === 1 ? 'resposta' : 'respostas'}` 
+                          : 'Responder'}
+                      </span>
+                      {review.showReplies ? (
+                        <ChevronUp className="h-4 w-4 ml-1" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 ml-1" />
+                      )}
+                    </Button>
+                    
+                    {review.showReplies && (
+                      <div className="mt-4 pl-4 border-l-2 border-gray-100 space-y-4">
+                        {review.replies && review.replies.length > 0 && review.replies.map((reply) => (
+                          <div key={reply.id} className="flex items-start">
                             <Avatar className="h-8 w-8 mr-3">
-                              <AvatarImage src="https://randomuser.me/api/portraits/lego/1.jpg" alt="Você" />
-                              <AvatarFallback>V</AvatarFallback>
+                              <AvatarImage src={reply.userAvatar} alt={reply.userName} />
+                              <AvatarFallback>{reply.userName.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <div className="relative flex-grow">
-                              <Textarea 
-                                placeholder="Escreva sua resposta..." 
-                                className="resize-none pr-10"
-                                rows={1}
-                              />
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-kubico-blue"
-                              >
-                                <Send className="h-4 w-4" />
-                              </Button>
+                            
+                            <div>
+                              <div className="flex items-center">
+                                <h5 className="font-medium">{reply.userName}</h5>
+                                <span className="text-xs text-kubico-gray-medium ml-2">
+                                  {formatDate(reply.createdAt)}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-sm text-kubico-gray-dark">{reply.comment}</p>
                             </div>
                           </div>
+                        ))}
+                        
+                        <div className="flex items-center mt-3">
+                          <Avatar className="h-8 w-8 mr-3">
+                            <AvatarImage src="https://randomuser.me/api/portraits/lego/1.jpg" alt="Você" />
+                            <AvatarFallback>V</AvatarFallback>
+                          </Avatar>
+                          <div className="relative flex-grow">
+                            <Textarea 
+                              placeholder="Escreva sua resposta..." 
+                              className="resize-none pr-10"
+                              rows={1}
+                              value={newReplies[review.id] || ''}
+                              onChange={(e) => setNewReplies({...newReplies, [review.id]: e.target.value})}
+                            />
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-kubico-blue"
+                              onClick={() => handleSubmitReply(review.id)}
+                            >
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
