@@ -1,11 +1,9 @@
-
 import React, { useState } from 'react';
 import { 
   FileText, 
   Download, 
   Eye, 
   File, 
-  FilePdf, 
   FileImage, 
   FileSpreadsheet, 
   X, 
@@ -105,7 +103,7 @@ const PropertyDocuments: React.FC<PropertyDocumentsProps> = ({ propertyId, isOwn
   const getDocumentIcon = (type: DocumentType) => {
     switch (type) {
       case 'pdf':
-        return <FilePdf className="h-6 w-6 text-red-500" />;
+        return <FileText className="h-6 w-6 text-red-500" />;
       case 'image':
         return <FileImage className="h-6 w-6 text-blue-500" />;
       case 'sheet':
@@ -116,8 +114,6 @@ const PropertyDocuments: React.FC<PropertyDocumentsProps> = ({ propertyId, isOwn
   };
   
   const handleDownload = (document: Document) => {
-    // Em uma aplicação real, isso redirecionaria para a URL do arquivo
-    // ou iniciaria o download usando fetch ou axios
     console.log(`Downloading ${document.name}`);
     
     toast({
@@ -246,7 +242,6 @@ const PropertyDocuments: React.FC<PropertyDocumentsProps> = ({ propertyId, isOwn
         />
       )}
       
-      {/* Modal de visualização de documento */}
       {selectedDocument && (
         <Dialog open={!!selectedDocument} onOpenChange={(open) => !open && setSelectedDocument(null)}>
           <DialogContent className="max-w-4xl">
@@ -268,7 +263,6 @@ const PropertyDocuments: React.FC<PropertyDocumentsProps> = ({ propertyId, isOwn
             </DialogHeader>
             
             <div className="h-[60vh] bg-gray-100 rounded flex items-center justify-center">
-              {/* Aqui seria renderizado o visualizador de documentos */}
               <div className="text-center">
                 <FileText className="h-16 w-16 text-kubico-gray-medium mx-auto mb-4" />
                 <p className="text-kubico-gray-dark">
