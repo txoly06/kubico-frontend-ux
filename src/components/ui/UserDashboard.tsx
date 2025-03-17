@@ -9,6 +9,15 @@ import DashboardAnalytics from './DashboardAnalytics';
 
 export type UserType = 'regular' | 'premium' | 'agent' | 'admin';
 
+// Define a proper interface for navigation items
+interface NavItem {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  badge?: number;
+  badgeHighlight?: boolean;
+}
+
 interface UserDashboardProps {
   userType: UserType;
   userData: {
@@ -36,7 +45,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
   
   const getNavItems = () => {
     // Items comuns a todos os tipos de usuário
-    const commonItems = [
+    const commonItems: NavItem[] = [
       {
         id: 'profile',
         label: 'Meu Perfil',
@@ -58,7 +67,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
     ];
     
     // Items específicos por tipo de usuário
-    const userSpecificItems = {
+    const userSpecificItems: Record<UserType, NavItem[]> = {
       'regular': [
         {
           id: 'properties',
