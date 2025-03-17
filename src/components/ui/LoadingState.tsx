@@ -10,8 +10,10 @@ interface LoadingStateProps {
   size?: LoadingSize;
   text?: string;
   rows?: number;
+  count?: number; // Added this property for backward compatibility
   fullPage?: boolean;
   transparent?: boolean;
+  className?: string; // Added className prop
 }
 
 const LoadingState: React.FC<LoadingStateProps> = ({
@@ -19,9 +21,14 @@ const LoadingState: React.FC<LoadingStateProps> = ({
   size = 'md',
   text = 'Carregando...',
   rows = 3,
+  count, // Handle the count prop
   fullPage = false,
-  transparent = false
+  transparent = false,
+  className = ''
 }) => {
+  // If count is provided, use it for rows
+  const itemCount = count !== undefined ? count : rows;
+
   // Configuração de tamanho
   const sizeClasses = {
     sm: 'h-4 w-4',
@@ -46,11 +53,14 @@ const LoadingState: React.FC<LoadingStateProps> = ({
     );
   }
   
+  // Apply additional className if provided
+  const containerClassName = className ? `${className} space-y-4` : 'space-y-4';
+  
   // Skeleton para cards
   if (variant === 'card') {
     return (
-      <div className="space-y-4">
-        {Array.from({ length: rows }).map((_, index) => (
+      <div className={containerClassName}>
+        {Array.from({ length: itemCount }).map((_, index) => (
           <div key={index} className="bg-gray-100 rounded-lg animate-pulse">
             <div className="h-40 bg-gray-200 rounded-t-lg" />
             <div className="p-4 space-y-3">
@@ -74,12 +84,12 @@ const LoadingState: React.FC<LoadingStateProps> = ({
   // Skeleton para tabelas
   if (variant === 'table') {
     return (
-      <div className="border rounded-lg overflow-hidden">
+      <div className={`border rounded-lg overflow-hidden ${className}`}>
         <div className="bg-gray-100 p-4 animate-pulse">
           <div className="h-5 bg-gray-200 rounded w-1/4" />
         </div>
         <div className="divide-y">
-          {Array.from({ length: rows }).map((_, index) => (
+          {Array.from({ length: itemCount }).map((_, index) => (
             <div key={index} className="p-4 flex items-center space-x-4 animate-pulse">
               <div className="h-10 w-10 bg-gray-200 rounded-full" />
               <div className="space-y-2 flex-1">

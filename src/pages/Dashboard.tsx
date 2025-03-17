@@ -47,6 +47,12 @@ const Dashboard = () => {
     setUserType(types[nextIndex]);
   };
   
+  // Função simulada para fechar o painel de notificações
+  const handleCloseNotifications = () => {
+    // Em um cenário real, isso poderia mudar o estado para esconder o painel
+    setActiveTab('properties');
+  };
+  
   // Renderização condicional do conteúdo com base na tab ativa
   const renderContent = () => {
     switch (activeTab) {
@@ -62,8 +68,8 @@ const Dashboard = () => {
         return <DashboardAnalytics userType={userType} />;
       case 'notifications':
         return (
-          <Suspense fallback={<LoadingState type="card" count={3} />}>
-            <NotificationsPanel />
+          <Suspense fallback={<LoadingState variant="card" rows={3} />}>
+            <NotificationsPanel onClose={handleCloseNotifications} />
           </Suspense>
         );
       default:

@@ -128,7 +128,7 @@ const Contracts = () => {
             </div>
             
             {activeView === 'lista' ? (
-              <Suspense fallback={<LoadingState type="card" count={3} className="mt-4" />}>
+              <Suspense fallback={<LoadingState variant="card" rows={3} className="mt-4" />}>
                 <DashboardContracts />
               </Suspense>
             ) : (

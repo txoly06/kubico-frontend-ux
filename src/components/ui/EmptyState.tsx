@@ -14,7 +14,9 @@ export type EmptyStateType =
   | 'settings' 
   | 'error'
   | 'loading'
-  | 'custom';
+  | 'custom'
+  | 'documents'
+  | 'reviews';
 
 interface EmptyStateProps {
   type: EmptyStateType;
@@ -30,6 +32,7 @@ interface EmptyStateProps {
     onClick: () => void;
   };
   compact?: boolean;
+  ctaAction?: () => void;
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({
@@ -39,7 +42,8 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   icon,
   action,
   secondaryAction,
-  compact = false
+  compact = false,
+  ctaAction
 }) => {
   // Configurações padrão com base no tipo
   const getDefaultConfig = (): { title: string; description: string; icon: React.ReactNode } => {
@@ -73,6 +77,18 @@ const EmptyState: React.FC<EmptyStateProps> = ({
           title: 'Nenhum contrato disponível',
           description: 'Você não tem contratos no momento. Quando novos contratos forem criados, eles aparecerão aqui.',
           icon: <FileText className="h-8 w-8 text-gray-400" />
+        };
+      case 'documents':
+        return {
+          title: 'Nenhum documento disponível',
+          description: 'Este imóvel não possui documentos cadastrados.',
+          icon: <FileText className="h-8 w-8 text-gray-400" />
+        };
+      case 'reviews':
+        return {
+          title: 'Nenhuma avaliação disponível',
+          description: 'Este imóvel ainda não recebeu avaliações.',
+          icon: <MessageSquare className="h-8 w-8 text-gray-400" />
         };
       case 'calendar':
         return {
@@ -146,12 +162,20 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         {description || defaultConfig.description}
       </p>
       
-      {(action || secondaryAction) && (
+      {(action || secondaryAction || ctaAction) && (
         <div className="flex flex-wrap justify-center gap-2">
           {action && (
             <Button onClick={action.onClick}>
               {type !== 'custom' && type !== 'loading' && type !== 'error' && <PlusCircle className="h-4 w-4 mr-2" />}
               {action.label}
+            </Button>
+          )}
+          
+          {ctaAction && (
+            <Button onClick={ctaAction}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              {type === 'documents' ? 'Solicitar Documentos' : 
+               type === 'reviews' ? 'Avaliar Imóvel' : 'Adicionar Novo'}
             </Button>
           )}
           
