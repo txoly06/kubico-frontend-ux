@@ -116,6 +116,26 @@ const PropertyMap = () => {
     
     return () => clearTimeout(timer);
   }, []);
+
+  // Auto-hide sidebar on small screens
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setShowSidebar(false);
+      } else {
+        setShowSidebar(true);
+      }
+    };
+
+    // Set initial state based on window size
+    handleResize();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Formatar moeda
   const formatCurrency = (value: number) => {
@@ -156,6 +176,14 @@ const PropertyMap = () => {
           left: position.left,
         }}
         onClick={() => setSelectedProperty(property.id)}
+        role="button"
+        aria-label={`Imóvel: ${property.title}`}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            setSelectedProperty(property.id);
+          }
+        }}
       >
         <div className="flex flex-col items-center">
           <div
@@ -167,7 +195,7 @@ const PropertyMap = () => {
           </div>
           
           {isSelected && (
-            <Card className="w-64 mt-2 overflow-hidden animate-fade-in absolute -translate-x-1/2 bottom-full mb-2">
+            <Card className="w-64 md:w-72 mt-2 overflow-hidden animate-fade-in absolute bottom-full mb-2 left-1/2 -translate-x-1/2">
               <div className="relative h-32 w-full">
                 <img
                   src={property.imageUrl}
@@ -183,6 +211,7 @@ const PropertyMap = () => {
                       e.stopPropagation();
                       setSelectedProperty(null);
                     }}
+                    aria-label="Fechar detalhes do imóvel"
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -256,13 +285,18 @@ const PropertyMap = () => {
   
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Skip to content link for accessibility */}
+      <a href="#map-content" className="skip-to-content">
+        Pular para o conteúdo do mapa
+      </a>
+      
       <Navbar />
       
       <main className="flex-grow relative">
         {/* Painel lateral */}
         <div
           className={`fixed top-0 left-0 h-full bg-white z-30 transition-all duration-300 shadow-lg pt-16 ${
-            showSidebar ? 'w-80' : 'w-0 overflow-hidden'
+            showSidebar ? 'md:w-72 lg:w-80 w-full' : 'w-0 overflow-hidden'
           }`}
         >
           <div className="flex flex-col h-full">
@@ -273,7 +307,8 @@ const PropertyMap = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowSidebar(false)}
-                  className="lg:hidden"
+                  className="md:hidden"
+                  aria-label="Fechar painel lateral"
                 >
                   <X className="h-5 w-5" />
                 </Button>
@@ -286,6 +321,7 @@ const PropertyMap = () => {
                   placeholder="Pesquisar imóveis..." 
                   value={filters.searchQuery}
                   onChange={(e) => setFilters({...filters, searchQuery: e.target.value})}
+                  aria-label="Pesquisar imóveis"
                 />
               </div>
             </div>
@@ -302,6 +338,7 @@ const PropertyMap = () => {
                 size="sm" 
                 className="text-sm text-kubico-blue"
                 onClick={() => setShowFilters(true)}
+                aria-label="Abrir filtros"
               >
                 <Filter className="h-4 w-4 mr-1" />
                 Filtros
@@ -317,6 +354,14 @@ const PropertyMap = () => {
                       selectedProperty === property.id ? 'ring-2 ring-kubico-blue' : ''
                     }`}
                     onClick={() => setSelectedProperty(property.id)}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Selecionar imóvel: ${property.title}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        setSelectedProperty(property.id);
+                      }
+                    }}
                   >
                     <div className="flex">
                       <div className="w-1/3 h-24">
@@ -357,20 +402,21 @@ const PropertyMap = () => {
           <Button
             className="fixed top-20 left-4 z-30 bg-white text-kubico-blue shadow-md hover:bg-gray-100"
             onClick={() => setShowSidebar(true)}
+            aria-label="Mostrar listagem de imóveis"
           >
             <List className="h-4 w-4 mr-2" />
-            <span>Ver Listagem</span>
+            <span className="sr-only md:not-sr-only">Ver Listagem</span>
           </Button>
         )}
         
         {/* Modal de filtros */}
         {showFilters && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="filter-title">
             <Card className="w-full max-w-md max-h-[90vh] overflow-hidden">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold">Filtros</h2>
-                  <Button variant="ghost" size="icon" onClick={() => setShowFilters(false)}>
+                  <h2 id="filter-title" className="text-xl font-semibold">Filtros</h2>
+                  <Button variant="ghost" size="icon" onClick={() => setShowFilters(false)} aria-label="Fechar filtros">
                     <X className="h-5 w-5" />
                   </Button>
                 </div>
@@ -379,7 +425,7 @@ const PropertyMap = () => {
                   <div className="space-y-6">
                     {/* Filtro de preço */}
                     <div>
-                      <h3 className="text-sm font-medium mb-4">Faixa de Preço</h3>
+                      <h3 id="price-range-label" className="text-sm font-medium mb-4">Faixa de Preço</h3>
                       <div className="mb-2">
                         <Slider
                           value={filters.priceRange}
@@ -387,6 +433,7 @@ const PropertyMap = () => {
                           max={5000000}
                           step={50000}
                           onValueChange={(value) => setFilters({...filters, priceRange: value as [number, number]})}
+                          aria-labelledby="price-range-label"
                         />
                       </div>
                       <div className="flex justify-between text-sm text-kubico-gray-medium">
@@ -406,6 +453,7 @@ const PropertyMap = () => {
                               id={`type-${type}`} 
                               checked={filters.propertyTypes.includes(type)}
                               onCheckedChange={() => toggleFilter('propertyTypes', type)}
+                              aria-label={`Tipo: ${type}`}
                             />
                             <Label htmlFor={`type-${type}`} className="text-sm">
                               {type}
@@ -417,18 +465,21 @@ const PropertyMap = () => {
                     
                     {/* Filtro de quartos */}
                     <div>
-                      <h3 className="text-sm font-medium mb-4">Quartos</h3>
-                      <div className="flex space-x-1">
+                      <h3 id="bedrooms-label" className="text-sm font-medium mb-4">Quartos</h3>
+                      <div className="flex flex-wrap gap-1">
                         {[1, 2, 3, 4, '5+'].map((num) => (
                           <Button
                             key={num}
                             variant="outline"
-                            className={`flex-1 ${
+                            size="sm"
+                            className={`${
                               filters.bedrooms.includes(typeof num === 'number' ? num : 5)
                                 ? 'bg-kubico-blue/10 text-kubico-blue border-kubico-blue'
                                 : ''
                             }`}
                             onClick={() => toggleFilter('bedrooms', typeof num === 'number' ? num : 5)}
+                            aria-pressed={filters.bedrooms.includes(typeof num === 'number' ? num : 5)}
+                            aria-labelledby="bedrooms-label"
                           >
                             {num}
                           </Button>
@@ -438,18 +489,21 @@ const PropertyMap = () => {
                     
                     {/* Filtro de banheiros */}
                     <div>
-                      <h3 className="text-sm font-medium mb-4">Banheiros</h3>
-                      <div className="flex space-x-1">
+                      <h3 id="bathrooms-label" className="text-sm font-medium mb-4">Banheiros</h3>
+                      <div className="flex flex-wrap gap-1">
                         {[1, 2, 3, 4, '5+'].map((num) => (
                           <Button
                             key={num}
                             variant="outline"
-                            className={`flex-1 ${
+                            size="sm"
+                            className={`${
                               filters.bathrooms.includes(typeof num === 'number' ? num : 5)
                                 ? 'bg-kubico-blue/10 text-kubico-blue border-kubico-blue'
                                 : ''
                             }`}
                             onClick={() => toggleFilter('bathrooms', typeof num === 'number' ? num : 5)}
+                            aria-pressed={filters.bathrooms.includes(typeof num === 'number' ? num : 5)}
+                            aria-labelledby="bathrooms-label"
                           >
                             {num}
                           </Button>
@@ -460,7 +514,7 @@ const PropertyMap = () => {
                     {/* Filtro de características */}
                     <div>
                       <h3 className="text-sm font-medium mb-4">Características</h3>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {[
                           'Piscina', 
                           'Academia', 
@@ -476,6 +530,7 @@ const PropertyMap = () => {
                               id={`feature-${feature}`} 
                               checked={filters.features.includes(feature)}
                               onCheckedChange={() => toggleFilter('features', feature)}
+                              aria-label={`Característica: ${feature}`}
                             />
                             <Label htmlFor={`feature-${feature}`} className="text-sm">
                               {feature}
@@ -509,25 +564,29 @@ const PropertyMap = () => {
         
         {/* Área do mapa */}
         <div 
+          id="map-content"
           className={`h-[calc(100vh-64px)] w-full relative ${
-            showSidebar ? 'lg:ml-80' : ''
+            showSidebar ? 'md:ml-72 lg:ml-80' : ''
           }`}
+          role="region"
+          aria-label="Mapa de imóveis"
         >
           {/* Botão de voltar à listagem em telas pequenas */}
           <Button
             variant="ghost"
-            className="absolute top-4 left-4 z-20 bg-white/90 backdrop-blur-sm shadow-sm lg:hidden"
+            className="absolute top-4 left-4 z-20 bg-white/90 backdrop-blur-sm shadow-sm md:hidden"
             onClick={() => navigate('/properties')}
+            aria-label="Voltar para listagem"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
-            Voltar
+            <span>Voltar</span>
           </Button>
           
           {/* Placeholder do mapa - em uma implementação real, seria o componente do mapa */}
           <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80')] bg-cover bg-center relative">
             {!mapLoaded ? (
               <div className="absolute inset-0 flex items-center justify-center bg-white">
-                <div className="text-center">
+                <div className="text-center" aria-live="polite">
                   <div className="w-16 h-16 border-4 border-t-kubico-blue border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mx-auto mb-4"></div>
                   <p className="text-kubico-gray-dark">Carregando o mapa...</p>
                 </div>

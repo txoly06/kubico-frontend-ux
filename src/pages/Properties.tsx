@@ -133,6 +133,7 @@ const Properties = () => {
   const [properties, setProperties] = useState(propertiesData);
   const [showMap, setShowMap] = useState(false);
   const [activeFilterCount, setActiveFilterCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -162,6 +163,13 @@ const Properties = () => {
     }
     
     setProperties(sortedProperties);
+    
+    // Simulate loading delay
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    
+    return () => clearTimeout(timer);
   }, [sortOption]);
 
   const handleApplyFilters = (filters: any) => {
@@ -224,11 +232,57 @@ const Properties = () => {
     navigate(`/properties/${propertyId}`);
   };
   
+  // Responsive view mode handler
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setViewMode('grid');
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Set initial state
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow pt-24 pb-16">
+          <div className="container mx-auto px-4">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+              
+              <div className="h-12 bg-gray-200 rounded mb-8"></div>
+              
+              <div className="h-10 bg-gray-200 rounded mb-6"></div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {Array(8).fill(0).map((_, index) => (
+                  <div key={index} className="bg-gray-200 rounded-xl h-64"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+  
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Skip to content link for accessibility */}
+      <a href="#main-content" className="skip-to-content">
+        Pular para o conteúdo principal
+      </a>
+      
       <Navbar />
       
-      <main className="flex-grow pt-24 pb-16">
+      <main id="main-content" className="flex-grow pt-24 pb-16">
         <div className="container mx-auto px-4">
           {/* Page header */}
           <div className="mb-8">
@@ -263,13 +317,14 @@ const Properties = () => {
               </p>
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-wrap items-center gap-4">
               {/* Sort options */}
               <div className="relative">
                 <select
                   value={sortOption}
                   onChange={(e) => setSortOption(e.target.value)}
                   className="appearance-none bg-white border border-gray-200 rounded-lg py-2 pl-10 pr-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-kubico-blue/20 focus:border-kubico-blue"
+                  aria-label="Ordenar imóveis por"
                 >
                   <option value="relevance">Relevância</option>
                   <option value="price-asc">Menor Preço</option>
@@ -286,14 +341,16 @@ const Properties = () => {
                 <button
                   className={`p-2 ${viewMode === 'grid' ? 'bg-kubico-blue text-white' : 'bg-white text-gray-700'}`}
                   onClick={() => setViewMode('grid')}
-                  aria-label="View as grid"
+                  aria-label="Ver em grade"
+                  aria-pressed={viewMode === 'grid'}
                 >
                   <LayoutGrid className="h-5 w-5" />
                 </button>
                 <button
                   className={`p-2 ${viewMode === 'list' ? 'bg-kubico-blue text-white' : 'bg-white text-gray-700'}`}
                   onClick={() => setViewMode('list')}
-                  aria-label="View as list"
+                  aria-label="Ver em lista"
+                  aria-pressed={viewMode === 'list'}
                 >
                   <LayoutList className="h-5 w-5" />
                 </button>
@@ -304,6 +361,7 @@ const Properties = () => {
                 variant="outline" 
                 className="hidden md:flex items-center"
                 onClick={() => navigate('/properties/map')}
+                aria-label="Ver imóveis no mapa"
               >
                 <MapPin className="h-4 w-4 mr-2" />
                 Ver no Mapa
@@ -313,7 +371,7 @@ const Properties = () => {
           
           {/* Property listings */}
           {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
               {properties.map((property) => (
                 <PropertyCard key={property.id} {...property} />
               ))}
@@ -360,7 +418,7 @@ const Properties = () => {
                   
                   <div className="md:w-2/3 p-5 flex flex-col">
                     <div className="flex-grow">
-                      <div className="flex justify-between items-start mb-2">
+                      <div className="flex flex-wrap justify-between items-start mb-2 gap-2">
                         <div>
                           <Link to={`/properties/${property.id}`}>
                             <h3 className="font-semibold text-xl mb-1 transition-colors hover:text-kubico-blue">
@@ -388,25 +446,25 @@ const Properties = () => {
                       {/* Features */}
                       <div className="flex flex-wrap gap-x-6 gap-y-2 mb-4">
                         <div className="property-feature">
-                          <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <path d="M3 12L5 10M5 10L12 3L19 10M5 10V20C5 20.5523 5.44772 21 6 21H9M19 10L21 12M19 10V20C19 20.5523 18.5523 21 18 21H15M9 21C9.55228 21 10 20.5523 10 20V16C10 15.4477 10.4477 15 11 15H13C13.5523 15 14 15.4477 14 16V20C14 20.5523 14.4477 21 15 21M9 21H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                           <span>{property.bedrooms} Quartos</span>
                         </div>
                         <div className="property-feature">
-                          <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <path d="M21 13V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V13M21 13H3M21 13V16C21 17.1046 20.1046 18 19 18H5C3.89543 18 3 17.1046 3 16V13M12 7V18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                           </svg>
                           <span>{property.bathrooms} Banheiros</span>
                         </div>
                         <div className="property-feature">
-                          <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <path d="M6 20L5 21M18 20L19 21M6 20H18M6 20V16M18 20V16M4 13V11C4 10.4477 4.44772 10 5 10H6.5M19 13V11C19 10.4477 18.5523 10 18 10H17M6.5 10V5C6.5 4.44772 6.94772 4 7.5 4H16.5C17.0523 4 17.5 4.44772 17.5 5V10M6.5 10H17M7 15H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                           <span>{property.parkingSpaces} Vagas</span>
                         </div>
                         <div className="property-feature">
-                          <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <path d="M3 16V4C3 3.44772 3.44772 3 4 3H20C20.5523 3 21 3.44772 21 4V20C21 20.5523 20.5523 21 20 21H7C4.79086 21 3 19.2091 3 17V16ZM3 16H8C8.55228 16 9 16.4477 9 17V21M13 10L17 6M17 6H14M17 6V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                           <span>{property.area} m²</span>
@@ -414,9 +472,9 @@ const Properties = () => {
                       </div>
                     </div>
                     
-                    <div className="flex justify-between items-center mt-auto">
+                    <div className="flex flex-wrap justify-between items-center gap-2 mt-auto">
                       <Button variant="ghost" size="sm" className="text-red-500">
-                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
                         Favoritar
@@ -461,16 +519,16 @@ const Properties = () => {
           {/* Pagination */}
           {properties.length > 0 && (
             <div className="mt-10 flex justify-center">
-              <nav className="flex items-center space-x-2">
-                <Button variant="outline" className="h-10 px-4 text-kubico-gray-dark border-gray-200" disabled>
+              <nav className="flex items-center space-x-2" aria-label="Paginação">
+                <Button variant="outline" className="h-10 px-4 text-kubico-gray-dark border-gray-200" disabled aria-label="Página anterior" aria-disabled="true">
                   Anterior
                 </Button>
-                <Button className="h-10 w-10 bg-kubico-blue hover:bg-kubico-blue/90">1</Button>
-                <Button variant="outline" className="h-10 w-10 text-kubico-gray-dark border-gray-200">2</Button>
-                <Button variant="outline" className="h-10 w-10 text-kubico-gray-dark border-gray-200">3</Button>
+                <Button className="h-10 w-10 bg-kubico-blue hover:bg-kubico-blue/90" aria-label="Página 1" aria-current="page">1</Button>
+                <Button variant="outline" className="h-10 w-10 text-kubico-gray-dark border-gray-200" aria-label="Página 2">2</Button>
+                <Button variant="outline" className="h-10 w-10 text-kubico-gray-dark border-gray-200" aria-label="Página 3">3</Button>
                 <span className="text-kubico-gray-dark">...</span>
-                <Button variant="outline" className="h-10 w-10 text-kubico-gray-dark border-gray-200">12</Button>
-                <Button variant="outline" className="h-10 px-4 text-kubico-gray-dark border-gray-200">
+                <Button variant="outline" className="h-10 w-10 text-kubico-gray-dark border-gray-200" aria-label="Página 12">12</Button>
+                <Button variant="outline" className="h-10 px-4 text-kubico-gray-dark border-gray-200" aria-label="Próxima página">
                   Próxima
                 </Button>
               </nav>

@@ -60,23 +60,23 @@ const MapView: React.FC<MapViewProps> = ({ properties, onPropertySelect, onClose
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <Card className="relative w-full max-w-5xl h-[80vh] bg-white shadow-lg rounded-lg overflow-hidden">
         <div className="absolute top-4 right-4 z-10">
-          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full bg-white/80 hover:bg-white">
+          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full bg-white/80 hover:bg-white" aria-label="Fechar mapa">
             <XCircle className="h-6 w-6 text-gray-700" />
           </Button>
         </div>
         
         <div className="h-full relative">
           {/* Map placeholder - would be replaced with actual map component */}
-          <div className="h-full w-full bg-gray-200 flex items-center justify-center">
+          <div className="h-full w-full bg-gray-200 flex items-center justify-center" role="region" aria-label="Mapa de imóveis">
             {!mapInitialized ? (
-              <div className="text-gray-500">Carregando mapa...</div>
+              <div className="text-gray-500" aria-live="polite">Carregando mapa...</div>
             ) : (
               <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80')] bg-cover bg-center relative">
                 {/* Property markers */}
                 {propertiesWithCoordinates.map((property) => (
                   <div 
                     key={property.id}
-                    className={`absolute cursor-pointer transform -translate-x-1/2 -translate-y-full transition-all duration-300 ${
+                    className={`absolute cursor-pointer transform transition-all duration-300 ${
                       selectedProperty === property.id ? 'scale-125 z-20' : 'z-10'
                     }`}
                     style={{ 
@@ -84,6 +84,14 @@ const MapView: React.FC<MapViewProps> = ({ properties, onPropertySelect, onClose
                       top: `${((property.latitude! + 23.56) * 5000) % 100}%` 
                     }}
                     onClick={() => handlePropertyClick(property.id)}
+                    role="button"
+                    aria-label={`Imóvel: ${property.title}`}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        handlePropertyClick(property.id);
+                      }
+                    }}
                   >
                     <div className="flex flex-col items-center">
                       <div className={`p-2 rounded-full ${
@@ -95,7 +103,7 @@ const MapView: React.FC<MapViewProps> = ({ properties, onPropertySelect, onClose
                       </div>
                       
                       {selectedProperty === property.id && (
-                        <div className="mt-2 bg-white rounded-lg shadow-lg p-3 w-48 animate-fade-in">
+                        <div className="mt-2 bg-white rounded-lg shadow-lg p-3 w-48 md:w-56 animate-fade-in absolute top-full left-1/2 -translate-x-1/2">
                           <div className="w-full h-24 overflow-hidden rounded-md mb-2">
                             <img 
                               src={property.imageUrl} 
