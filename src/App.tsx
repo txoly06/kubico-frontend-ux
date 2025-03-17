@@ -10,7 +10,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import PropertyDetails from "./pages/PropertyDetails";
-import Properties from "./pages/Properties"; // Add import for Properties page
+import Properties from "./pages/Properties"; 
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import Contracts from "./pages/Contracts";
@@ -21,6 +21,7 @@ import Register from "./pages/Auth/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import Unauthorized from "./pages/Unauthorized";
+import PropertyMap from "./pages/PropertyMap";
 
 const queryClient = new QueryClient();
 
@@ -34,8 +35,9 @@ const App = () => (
           <Routes>
             {/* Rotas públicas */}
             <Route path="/" element={<Index />} />
-            <Route path="/properties" element={<Properties />} /> {/* Add route for Properties page */}
+            <Route path="/properties" element={<Properties />} />
             <Route path="/properties/:id" element={<PropertyDetails />} />
+            <Route path="/properties/map" element={<PropertyMap />} />
             <Route path="/contact" element={<Contact />} />
             
             {/* Rotas de autenticação */}

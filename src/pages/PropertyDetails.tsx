@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ArrowLeft, Bed, Bath, SquareCode, MapPin, Heart, Share, Home, Calendar, Ruler, LineChart, CheckCircle } from 'lucide-react';
@@ -15,6 +16,9 @@ import {
 } from "@/components/ui/carousel";
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import PropertyContactForm from '@/components/ui/PropertyContactForm';
+import PropertyDocuments from '@/components/ui/PropertyDocuments';
+import PropertyReviews from '@/components/ui/PropertyReviews';
+import Property360Viewer from '@/components/ui/Property360Viewer';
 import { cn } from '@/lib/utils';
 
 const propertyData = {
@@ -53,6 +57,7 @@ const PropertyDetails = () => {
   const { id } = useParams();
   const [property, setProperty] = useState(propertyData);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('description');
   
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -215,11 +220,13 @@ const PropertyDetails = () => {
               </div>
               
               {/* Abas com informações detalhadas */}
-              <Tabs defaultValue="description" className="mb-8">
-                <TabsList className="grid grid-cols-3 mb-6">
+              <Tabs defaultValue="description" value={activeTab} onValueChange={setActiveTab} className="mb-8">
+                <TabsList className="grid grid-cols-5 mb-6">
                   <TabsTrigger value="description">Descrição</TabsTrigger>
                   <TabsTrigger value="amenities">Características</TabsTrigger>
                   <TabsTrigger value="location">Localização</TabsTrigger>
+                  <TabsTrigger value="documents">Documentos</TabsTrigger>
+                  <TabsTrigger value="reviews">Avaliações</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="description" className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
@@ -259,7 +266,35 @@ const PropertyDetails = () => {
                     </div>
                   </div>
                 </TabsContent>
+                
+                <TabsContent value="documents" className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
+                  <PropertyDocuments propertyId={property.id} isOwner={false} />
+                </TabsContent>
+                
+                <TabsContent value="reviews" className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
+                  <PropertyReviews propertyId={property.id} />
+                </TabsContent>
+                
+                <TabsContent value="virtual-tour" className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
+                  <h3 className="text-xl font-semibold mb-4">Tour Virtual</h3>
+                  <div className="relative rounded-xl overflow-hidden h-[400px] bg-gray-100">
+                    <Property360Viewer propertyId={property.id} />
+                  </div>
+                </TabsContent>
               </Tabs>
+              
+              {/* Botão para Tour Virtual */}
+              <div className="mb-8">
+                <Button 
+                  className="w-full bg-gradient-to-r from-kubico-blue to-kubico-blue/80 text-white hover:from-kubico-blue/90 hover:to-kubico-blue/70"
+                  size="lg"
+                  onClick={() => setActiveTab('virtual-tour')}
+                >
+                  <div className="flex items-center justify-center">
+                    <span className="mr-2">Explorar Tour Virtual 360°</span>
+                  </div>
+                </Button>
+              </div>
             </div>
             
             {/* Coluna lateral - preço e formulário de contato */}

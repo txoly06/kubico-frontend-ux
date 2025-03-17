@@ -1,313 +1,398 @@
 
 import React, { useState } from 'react';
-import { CheckCircle, Circle, Clock, AlertCircle, File, FileCheck, Signature, SendHorizontal, CalendarCheck, X } from 'lucide-react';
+import { 
+  Edit, 
+  FileText, 
+  FileSignature, 
+  Check, 
+  CheckCircle, 
+  Clock, 
+  ArrowRight, 
+  X, 
+  ChevronDown, 
+  ChevronRight, 
+  Download, 
+  Trash
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
 
-interface Step {
+interface WorkflowStep {
   id: string;
-  title: string;
+  name: string;
   description: string;
-  status: 'completed' | 'current' | 'pending' | 'failed';
-  date?: string;
+  status: 'pending' | 'active' | 'completed' | 'failed';
   icon: React.ReactNode;
+  date?: string;
+  participants?: Participant[];
+}
+
+interface Participant {
+  id: string;
+  name: string;
+  role: string;
+  status: 'waiting' | 'completed' | 'rejected' | 'expired';
+  date?: string;
 }
 
 interface ContractWorkflowProps {
   contractId: string;
-  contractType: 'sale' | 'rent';
-  onAction?: (action: string, stepId: string) => void;
+  onSign?: () => void;
+  onReject?: () => void;
+  onDownload?: () => void;
 }
 
-const ContractWorkflow: React.FC<ContractWorkflowProps> = ({ 
-  contractId, 
-  contractType, 
-  onAction 
+const ContractWorkflow: React.FC<ContractWorkflowProps> = ({
+  contractId,
+  onSign,
+  onReject,
+  onDownload
 }) => {
   const { toast } = useToast();
+  const [expandedStep, setExpandedStep] = useState<string | null>(null);
   
-  // Definir etapas com base no tipo de contrato
-  const getSaleWorkflowSteps = (): Step[] => [
+  // Estados iniciais do workflow
+  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStep[]>([
     {
-      id: 'proposal',
-      title: 'Proposta Enviada',
-      description: 'Proposta de compra enviada ao vendedor.',
+      id: 'draft',
+      name: 'Elaboração do Contrato',
+      description: 'Elaboração e personalização dos termos do contrato de acordo com as necessidades específicas.',
       status: 'completed',
-      date: '10/05/2023',
-      icon: <SendHorizontal className="h-6 w-6" />
-    },
-    {
-      id: 'proposal-accepted',
-      title: 'Proposta Aceita',
-      description: 'Vendedor aceitou a proposta de compra.',
-      status: 'completed',
-      date: '12/05/2023',
-      icon: <CheckCircle className="h-6 w-6" />
-    },
-    {
-      id: 'contract-generated',
-      title: 'Contrato Gerado',
-      description: 'Contrato de compra e venda gerado e aguardando assinaturas.',
-      status: 'completed',
+      icon: <Edit className="h-5 w-5" />,
       date: '15/05/2023',
-      icon: <File className="h-6 w-6" />
+      participants: [
+        {
+          id: 'u1',
+          name: 'Marcelo Santos',
+          role: 'Corretor',
+          status: 'completed',
+          date: '15/05/2023'
+        }
+      ]
     },
     {
-      id: 'buyer-sign',
-      title: 'Assinatura do Comprador',
-      description: 'Aguardando assinatura do comprador.',
-      status: 'current',
-      icon: <Signature className="h-6 w-6" />
+      id: 'review',
+      name: 'Revisão Jurídica',
+      description: 'Análise dos termos do contrato pelo departamento jurídico para validação legal.',
+      status: 'completed',
+      icon: <FileText className="h-5 w-5" />,
+      date: '20/05/2023',
+      participants: [
+        {
+          id: 'u2',
+          name: 'Ana Jurídico',
+          role: 'Advogada',
+          status: 'completed',
+          date: '20/05/2023'
+        }
+      ]
     },
     {
-      id: 'seller-sign',
-      title: 'Assinatura do Vendedor',
-      description: 'Aguardando assinatura do vendedor.',
+      id: 'signature',
+      name: 'Assinaturas',
+      description: 'Coleta de assinaturas de todas as partes envolvidas no contrato.',
+      status: 'active',
+      icon: <FileSignature className="h-5 w-5" />,
+      participants: [
+        {
+          id: 'u3',
+          name: 'João Carlos Oliveira',
+          role: 'Comprador',
+          status: 'completed',
+          date: '22/05/2023'
+        },
+        {
+          id: 'u4',
+          name: 'Você',
+          role: 'Vendedor',
+          status: 'waiting'
+        }
+      ]
+    },
+    {
+      id: 'completion',
+      name: 'Conclusão',
+      description: 'Finalização do processo e distribuição do contrato assinado.',
       status: 'pending',
-      icon: <Signature className="h-6 w-6" />
-    },
-    {
-      id: 'payment',
-      title: 'Pagamento',
-      description: 'Aguardando confirmação do pagamento.',
-      status: 'pending',
-      icon: <CalendarCheck className="h-6 w-6" />
-    },
-    {
-      id: 'completed',
-      title: 'Finalizado',
-      description: 'Contrato finalizado e registrado.',
-      status: 'pending',
-      icon: <FileCheck className="h-6 w-6" />
+      icon: <CheckCircle className="h-5 w-5" />
     }
-  ];
+  ]);
   
-  const getRentWorkflowSteps = (): Step[] => [
-    {
-      id: 'proposal',
-      title: 'Proposta Enviada',
-      description: 'Proposta de aluguel enviada ao proprietário.',
-      status: 'completed',
-      date: '10/05/2023',
-      icon: <SendHorizontal className="h-6 w-6" />
-    },
-    {
-      id: 'proposal-accepted',
-      title: 'Proposta Aceita',
-      description: 'Proprietário aceitou a proposta de aluguel.',
-      status: 'completed',
-      date: '12/05/2023',
-      icon: <CheckCircle className="h-6 w-6" />
-    },
-    {
-      id: 'document-check',
-      title: 'Análise de Documentos',
-      description: 'Documentos enviados e em análise.',
-      status: 'completed',
-      date: '15/05/2023',
-      icon: <File className="h-6 w-6" />
-    },
-    {
-      id: 'contract-generated',
-      title: 'Contrato Gerado',
-      description: 'Contrato de locação gerado e aguardando assinaturas.',
-      status: 'completed',
-      date: '18/05/2023',
-      icon: <File className="h-6 w-6" />
-    },
-    {
-      id: 'tenant-sign',
-      title: 'Assinatura do Inquilino',
-      description: 'Aguardando assinatura do inquilino.',
-      status: 'current',
-      icon: <Signature className="h-6 w-6" />
-    },
-    {
-      id: 'owner-sign',
-      title: 'Assinatura do Proprietário',
-      description: 'Aguardando assinatura do proprietário.',
-      status: 'pending',
-      icon: <Signature className="h-6 w-6" />
-    },
-    {
-      id: 'deposit',
-      title: 'Depósito Caução',
-      description: 'Aguardando confirmação do depósito caução.',
-      status: 'pending',
-      icon: <CalendarCheck className="h-6 w-6" />
-    },
-    {
-      id: 'inspection',
-      title: 'Vistoria',
-      description: 'Vistoria agendada para entrega das chaves.',
-      status: 'pending',
-      icon: <CheckCircle className="h-6 w-6" />
-    },
-    {
-      id: 'completed',
-      title: 'Finalizado',
-      description: 'Contrato ativo e chaves entregues.',
-      status: 'pending',
-      icon: <FileCheck className="h-6 w-6" />
-    }
-  ];
-  
-  const [steps, setSteps] = useState<Step[]>(
-    contractType === 'sale' ? getSaleWorkflowSteps() : getRentWorkflowSteps()
-  );
-  
-  const handleStepAction = (action: string, stepId: string) => {
-    if (onAction) {
-      onAction(action, stepId);
-    }
+  // Calcular o progresso geral do workflow
+  const calculateProgress = () => {
+    const totalSteps = workflowSteps.length;
+    const completedSteps = workflowSteps.filter(step => step.status === 'completed').length;
+    const activeStep = workflowSteps.find(step => step.status === 'active');
     
-    if (action === 'sign') {
-      // Atualizar o status da etapa atual para concluída
-      const updatedSteps = steps.map((step) => {
-        if (step.id === stepId) {
+    // Se há um passo ativo, contamos como 0.5 para o progresso
+    const progress = ((completedSteps + (activeStep ? 0.5 : 0)) / totalSteps) * 100;
+    return Math.round(progress);
+  };
+  
+  // Alternar a expansão de um passo
+  const toggleStepExpansion = (stepId: string) => {
+    setExpandedStep(expandedStep === stepId ? null : stepId);
+  };
+  
+  // Assinar o contrato
+  const handleSign = () => {
+    // Atualizar o status do participante atual
+    setWorkflowSteps(prevSteps =>
+      prevSteps.map(step => {
+        if (step.id === 'signature') {
           return {
             ...step,
-            status: 'completed' as const,
+            participants: step.participants?.map(participant => {
+              if (participant.name === 'Você') {
+                return {
+                  ...participant,
+                  status: 'completed',
+                  date: new Date().toLocaleDateString('pt-BR')
+                };
+              }
+              return participant;
+            }),
+            status: 'completed',
             date: new Date().toLocaleDateString('pt-BR')
           };
-        } else if (step.status === 'pending' && steps.findIndex(s => s.id === stepId) + 1 === steps.findIndex(s => s.id === step.id)) {
-          // Atualizar a próxima etapa para "current"
+        }
+        
+        // Avançar para o próximo passo
+        if (step.id === 'completion') {
           return {
             ...step,
-            status: 'current' as const
+            status: 'active'
           };
         }
+        
         return step;
-      });
-      
-      setSteps(updatedSteps);
-      
-      toast({
-        title: "Contrato assinado",
-        description: "Sua assinatura foi registrada com sucesso no contrato.",
-      });
-    }
+      })
+    );
+    
+    toast({
+      title: "Contrato assinado com sucesso!",
+      description: "O contrato foi assinado digitalmente e está em processamento final.",
+    });
+    
+    // Chamar o callback, se fornecido
+    if (onSign) onSign();
   };
   
-  const getStepStatusIcon = (status: Step['status']) => {
+  // Renderizar o status do passo com o estilo apropriado
+  const renderStepStatus = (status: 'pending' | 'active' | 'completed' | 'failed') => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-6 w-6 text-green-500" />;
-      case 'current':
-        return <Clock className="h-6 w-6 text-amber-500" />;
+        return (
+          <div className="flex items-center text-green-500">
+            <CheckCircle className="h-4 w-4 mr-1" />
+            <span>Concluído</span>
+          </div>
+        );
+      case 'active':
+        return (
+          <div className="flex items-center text-blue-500">
+            <Clock className="h-4 w-4 mr-1" />
+            <span>Em andamento</span>
+          </div>
+        );
       case 'failed':
-        return <AlertCircle className="h-6 w-6 text-red-500" />;
+        return (
+          <div className="flex items-center text-red-500">
+            <X className="h-4 w-4 mr-1" />
+            <span>Falhou</span>
+          </div>
+        );
       default:
-        return <Circle className="h-6 w-6 text-gray-300" />;
+        return (
+          <div className="flex items-center text-gray-400">
+            <Clock className="h-4 w-4 mr-1" />
+            <span>Pendente</span>
+          </div>
+        );
     }
   };
   
-  const getCurrentStep = () => {
-    return steps.find(step => step.status === 'current');
+  // Renderizar o status do participante
+  const renderParticipantStatus = (status: 'waiting' | 'completed' | 'rejected' | 'expired') => {
+    switch (status) {
+      case 'completed':
+        return (
+          <div className="flex items-center text-green-500">
+            <Check className="h-4 w-4 mr-1" />
+            <span>Assinado</span>
+          </div>
+        );
+      case 'rejected':
+        return (
+          <div className="flex items-center text-red-500">
+            <X className="h-4 w-4 mr-1" />
+            <span>Rejeitado</span>
+          </div>
+        );
+      case 'expired':
+        return (
+          <div className="flex items-center text-gray-400">
+            <Clock className="h-4 w-4 mr-1" />
+            <span>Expirado</span>
+          </div>
+        );
+      default:
+        return (
+          <div className="flex items-center text-amber-500">
+            <Clock className="h-4 w-4 mr-1" />
+            <span>Aguardando</span>
+          </div>
+        );
+    }
   };
-  
-  const currentStep = getCurrentStep();
   
   return (
     <div className="space-y-6">
       <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
-        <h3 className="font-semibold text-lg mb-2">Status do Contrato</h3>
-        <div className="flex items-center space-x-2">
-          <Badge variant="outline" className="px-2 py-1 text-xs font-normal border-kubico-blue text-kubico-blue">
-            ID: {contractId}
-          </Badge>
-          <Badge variant="outline" className="px-2 py-1 text-xs font-normal border-kubico-green text-kubico-green">
-            {contractType === 'sale' ? 'Compra e Venda' : 'Locação'}
-          </Badge>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold">Status do Contrato</h3>
+            <p className="text-sm text-kubico-gray-medium">Acompanhe o progresso de todas as etapas do contrato</p>
+          </div>
+          
+          <div className="text-center">
+            <div className="text-xl font-bold text-kubico-blue">{calculateProgress()}%</div>
+            <p className="text-xs text-kubico-gray-medium">concluído</p>
+          </div>
         </div>
         
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute top-0 bottom-0 left-6 w-[1px] bg-gray-200"></div>
-            
-            <div className="space-y-6">
-              {steps.map((step, index) => (
-                <div key={step.id} className="relative pl-14">
-                  <div className={cn(
-                    "absolute left-0 top-0 w-12 h-12 rounded-full flex items-center justify-center",
-                    step.status === 'completed' ? "bg-green-100" :
-                    step.status === 'current' ? "bg-amber-100" :
-                    step.status === 'failed' ? "bg-red-100" : "bg-gray-100"
-                  )}>
-                    {step.status === 'completed' ? 
-                      <CheckCircle className="h-6 w-6 text-green-500" /> : 
-                      step.status === 'current' ? 
-                        step.icon : 
-                        step.icon
-                    }
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between items-center">
-                      <h4 className={cn(
-                        "font-medium",
-                        step.status === 'completed' ? "text-green-600" :
-                        step.status === 'current' ? "text-amber-600" :
-                        step.status === 'failed' ? "text-red-600" : "text-gray-500"
-                      )}>
-                        {step.title}
-                      </h4>
-                      
-                      {step.date && (
-                        <span className="text-sm text-kubico-gray-medium">
-                          {step.date}
-                        </span>
-                      )}
+        <Progress value={calculateProgress()} className="h-2 mb-6" />
+        
+        <div className="space-y-4">
+          {workflowSteps.map((step, index) => (
+            <div 
+              key={step.id}
+              className={cn(
+                "border rounded-lg transition-all",
+                step.status === 'completed' ? "border-green-100 bg-green-50" :
+                step.status === 'active' ? "border-blue-100 bg-blue-50" :
+                step.status === 'failed' ? "border-red-100 bg-red-50" :
+                "border-gray-100 bg-gray-50"
+              )}
+            >
+              <div 
+                className="p-4 cursor-pointer"
+                onClick={() => toggleStepExpansion(step.id)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center mr-3",
+                      step.status === 'completed' ? "bg-green-100 text-green-500" :
+                      step.status === 'active' ? "bg-blue-100 text-blue-500" :
+                      step.status === 'failed' ? "bg-red-100 text-red-500" :
+                      "bg-gray-100 text-gray-400"
+                    )}>
+                      {step.icon}
                     </div>
                     
-                    <p className="text-sm text-kubico-gray-dark mt-1">
-                      {step.description}
-                    </p>
-                    
-                    {step.status === 'current' && (
-                      <div className="mt-3">
-                        <Button 
-                          size="sm" 
-                          className="bg-kubico-blue hover:bg-kubico-blue/90"
-                          onClick={() => handleStepAction('sign', step.id)}
-                        >
-                          <Signature className="h-4 w-4 mr-2" />
-                          Assinar Contrato
-                        </Button>
-                      </div>
-                    )}
+                    <div>
+                      <h4 className="font-medium">{step.name}</h4>
+                      {step.date && (
+                        <p className="text-xs text-kubico-gray-medium">{step.date}</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    {renderStepStatus(step.status)}
+                    <div className="ml-3">
+                      {expandedStep === step.id ? (
+                        <ChevronDown className="h-5 w-5 text-kubico-gray-medium" />
+                      ) : (
+                        <ChevronRight className="h-5 w-5 text-kubico-gray-medium" />
+                      )}
+                    </div>
                   </div>
                 </div>
-              ))}
+              </div>
+              
+              {expandedStep === step.id && (
+                <div className="px-4 pb-4 pt-2 border-t border-gray-100">
+                  <p className="text-sm text-kubico-gray-dark mb-4">{step.description}</p>
+                  
+                  {step.participants && step.participants.length > 0 && (
+                    <div>
+                      <h5 className="text-sm font-medium mb-2">Participantes</h5>
+                      <div className="space-y-2">
+                        {step.participants.map((participant) => (
+                          <div key={participant.id} className="flex items-center justify-between p-2 bg-white rounded border border-gray-100">
+                            <div>
+                              <p className="font-medium text-sm">{participant.name}</p>
+                              <p className="text-xs text-kubico-gray-medium">{participant.role}</p>
+                            </div>
+                            
+                            <div className="flex items-center">
+                              {renderParticipantStatus(participant.status)}
+                              {participant.date && (
+                                <span className="text-xs text-kubico-gray-medium ml-2">{participant.date}</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Seta de conexão entre passos */}
+              {index < workflowSteps.length - 1 && (
+                <div className="flex justify-center my-2">
+                  <ArrowRight className="h-5 w-5 text-kubico-gray-medium" />
+                </div>
+              )}
             </div>
-          </div>
+          ))}
         </div>
       </div>
       
-      {currentStep && (
-        <div className="bg-kubico-blue/5 border border-kubico-blue/20 rounded-xl p-6">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-semibold text-kubico-blue">Próxima Etapa: {currentStep.title}</h3>
-              <p className="text-kubico-gray-dark mt-1">
-                {currentStep.description}
-              </p>
-            </div>
-            
-            {currentStep.id.includes('sign') && (
-              <Button 
-                className="bg-kubico-blue hover:bg-kubico-blue/90"
-                onClick={() => handleStepAction('sign', currentStep.id)}
-              >
-                <Signature className="h-4 w-4 mr-2" />
-                Assinar Agora
-              </Button>
-            )}
-          </div>
+      {/* Ações disponíveis para o contrato */}
+      <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
+        <h3 className="text-lg font-semibold mb-4">Ações Disponíveis</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Button 
+            className={`flex items-center justify-center ${
+              workflowSteps.find(step => step.id === 'signature')?.status === 'active'
+                ? 'bg-kubico-blue hover:bg-kubico-blue/90'
+                : 'bg-gray-200 text-gray-500 cursor-not-allowed hover:bg-gray-200'
+            }`}
+            disabled={workflowSteps.find(step => step.id === 'signature')?.status !== 'active'}
+            onClick={handleSign}
+          >
+            <FileSignature className="h-5 w-5 mr-2" />
+            Assinar Contrato
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="flex items-center justify-center"
+            onClick={onDownload}
+          >
+            <Download className="h-5 w-5 mr-2" />
+            Baixar Contrato
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="flex items-center justify-center text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+            onClick={onReject}
+          >
+            <Trash className="h-5 w-5 mr-2" />
+            Rejeitar Contrato
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 };
