@@ -10,7 +10,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import PropertyDetails from "./pages/PropertyDetails";
-import Properties from "./pages/Properties"; 
+import Properties from "./pages/Properties"; // This now imports from src/pages/Properties/index.tsx
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import Contracts from "./pages/Contracts";
