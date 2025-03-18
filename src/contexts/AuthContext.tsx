@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -29,6 +30,31 @@ interface RegisterData {
   phone: string;
   password: string;
 }
+
+// Lista de usuários teste para diferentes perfis
+const testUsers: Record<string, User> = {
+  'cliente@kubico.com': {
+    id: '1',
+    name: 'Ana Silva',
+    email: 'cliente@kubico.com',
+    role: 'client',
+    avatar: 'https://randomuser.me/api/portraits/women/44.jpg'
+  },
+  'corretor@kubico.com': {
+    id: '2',
+    name: 'João Oliveira',
+    email: 'corretor@kubico.com',
+    role: 'agent',
+    avatar: 'https://randomuser.me/api/portraits/men/32.jpg'
+  },
+  'admin@kubico.com': {
+    id: '3',
+    name: 'Carlos Mendes',
+    email: 'admin@kubico.com',
+    role: 'admin',
+    avatar: 'https://randomuser.me/api/portraits/men/68.jpg'
+  }
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -64,10 +90,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Em uma aplicação real, aqui seria feita uma chamada à API
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Simulando credenciais válidas
-      if (email === 'usuario@exemplo.com' && password === 'senha123') {
+      // Para fins de demonstração, aceitamos qualquer senha para os usuários de teste
+      if (testUsers[email] && password.length > 3) {
+        const userData = testUsers[email];
+        
+        setUser(userData);
+        localStorage.setItem('kubico_token', 'token_simulado');
+        localStorage.setItem('kubico_user', JSON.stringify(userData));
+        
+        toast.success(`Login realizado com sucesso como ${userData.role}!`);
+        return true;
+      } else if (email === 'usuario@exemplo.com' && password === 'senha123') {
+        // Manter o usuário padrão original para compatibilidade
         const userData: User = {
-          id: '1',
+          id: '4',
           name: 'Ana Silva',
           email: email,
           role: 'client'

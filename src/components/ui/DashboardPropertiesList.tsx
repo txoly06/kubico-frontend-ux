@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Eye, Edit, Trash, Search, Plus, Filter, Grid3X3, List, MoreHorizontal, Home } from 'lucide-react';
@@ -15,6 +16,9 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import AddPropertyForm from '@/pages/Properties/components/AddPropertyForm';
+import EditPropertyForm from '@/pages/Properties/components/EditPropertyForm';
 
 const propertiesData = [
   {
@@ -55,9 +59,12 @@ const propertiesData = [
 
 const DashboardPropertiesList = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [properties, setProperties] = useState(propertiesData);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingProperty, setEditingProperty] = useState<any>(null);
   
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
@@ -88,6 +95,43 @@ const DashboardPropertiesList = () => {
         ? "O imóvel não será mais exibido em destaque." 
         : "O imóvel será exibido em destaque na plataforma.",
     });
+  };
+  
+  const handleAddProperty = () => {
+    // Em uma aplicação real, aqui seria feita uma chamada à API para adicionar o imóvel
+    // Simulando a adição de um novo imóvel
+    const newProperty = {
+      id: `${properties.length + 1}`,
+      title: 'Novo Imóvel',
+      address: 'Endereço do novo imóvel',
+      city: 'São Paulo',
+      state: 'SP',
+      price: 800000,
+      type: 'Apartamento',
+      status: 'À Venda',
+      bedrooms: 2,
+      bathrooms: 1,
+      area: 80,
+      image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+      createdAt: new Date().toISOString().split('T')[0],
+      views: 0,
+      featured: false
+    };
+    
+    setProperties([newProperty, ...properties]);
+    setIsAddDialogOpen(false);
+  };
+  
+  const handleEditProperty = () => {
+    // Em uma aplicação real, aqui seria feita uma chamada à API para atualizar o imóvel
+    // Simulando a atualização de um imóvel
+    setProperties(properties.map(property => 
+      property.id === editingProperty.id 
+        ? { ...editingProperty, updatedAt: new Date().toISOString() } 
+        : property
+    ));
+    
+    setEditingProperty(null);
   };
   
   return (
@@ -135,10 +179,20 @@ const DashboardPropertiesList = () => {
               </Button>
             </div>
             
-            <Button size="sm" className="gap-1 bg-kubico-blue hover:bg-kubico-blue/90">
-              <Plus className="h-4 w-4" />
-              <span>Adicionar Imóvel</span>
-            </Button>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-1 bg-kubico-blue hover:bg-kubico-blue/90">
+                  <Plus className="h-4 w-4" />
+                  <span>Adicionar Imóvel</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl">
+                <AddPropertyForm 
+                  onClose={() => setIsAddDialogOpen(false)} 
+                  onSuccess={handleAddProperty} 
+                />
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>
@@ -170,10 +224,26 @@ const DashboardPropertiesList = () => {
                         <Eye className="h-4 w-4 mr-2" />
                         <span>Visualizar</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Edit className="h-4 w-4 mr-2" />
-                        <span>Editar</span>
-                      </DropdownMenuItem>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <DropdownMenuItem onSelect={(e) => {
+                            e.preventDefault();
+                            setEditingProperty(property);
+                          }}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            <span>Editar</span>
+                          </DropdownMenuItem>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl">
+                          {editingProperty && (
+                            <EditPropertyForm 
+                              property={editingProperty}
+                              onClose={() => setEditingProperty(null)} 
+                              onSuccess={handleEditProperty} 
+                            />
+                          )}
+                        </DialogContent>
+                      </Dialog>
                       <DropdownMenuItem onClick={() => handleToggleFeature(property.id)}>
                         {property.featured ? (
                           <>
@@ -249,11 +319,27 @@ const DashboardPropertiesList = () => {
                         <Eye className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Link to={`/properties/${property.id}/edit`}>
-                      <Button size="sm" variant="outline" className="h-8">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-8"
+                          onClick={() => setEditingProperty(property)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl">
+                        {editingProperty && (
+                          <EditPropertyForm 
+                            property={editingProperty}
+                            onClose={() => setEditingProperty(null)} 
+                            onSuccess={handleEditProperty} 
+                          />
+                        )}
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </div>
@@ -300,11 +386,27 @@ const DashboardPropertiesList = () => {
                         <Eye className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Link to={`/properties/${property.id}/edit`}>
-                      <Button size="sm" variant="outline" className="h-8">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-8"
+                          onClick={() => setEditingProperty(property)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl">
+                        {editingProperty && (
+                          <EditPropertyForm 
+                            property={editingProperty}
+                            onClose={() => setEditingProperty(null)} 
+                            onSuccess={handleEditProperty} 
+                          />
+                        )}
+                      </DialogContent>
+                    </Dialog>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm" className="h-8">
@@ -359,10 +461,20 @@ const DashboardPropertiesList = () => {
           <p className="text-kubico-gray-medium mb-6">
             Você ainda não cadastrou nenhum imóvel na plataforma.
           </p>
-          <Button className="bg-kubico-blue hover:bg-kubico-blue/90">
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar Imóvel
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="bg-kubico-blue hover:bg-kubico-blue/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Imóvel
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl">
+              <AddPropertyForm 
+                onClose={() => setIsAddDialogOpen(false)} 
+                onSuccess={handleAddProperty} 
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       )}
     </div>

@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, LogIn, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, LogIn, Lock, Mail, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
@@ -54,6 +55,17 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
+  const loginExamples = [
+    { email: 'cliente@kubico.com', password: 'senha123', role: 'Cliente' },
+    { email: 'corretor@kubico.com', password: 'senha123', role: 'Corretor' },
+    { email: 'admin@kubico.com', password: 'senha123', role: 'Administrador' }
+  ];
+
+  const setTestCredentials = (email: string, password: string) => {
+    setEmail(email);
+    setPassword(password);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -62,7 +74,50 @@ const Login = () => {
         <div className="w-full max-w-md px-4">
           <Card className="w-full">
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-bold text-center">Entrar na sua conta</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl font-bold">Entrar na sua conta</CardTitle>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" className="h-8 w-8">
+                      <HelpCircle className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80">
+                    <div className="space-y-2">
+                      <h3 className="font-medium">Contas de teste</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Use uma das seguintes contas para testar os diferentes perfis:
+                      </p>
+                      <div className="space-y-2 mt-2">
+                        {loginExamples.map((example, index) => (
+                          <div 
+                            key={index} 
+                            className="border rounded-md p-3 cursor-pointer hover:bg-gray-50"
+                            onClick={() => setTestCredentials(example.email, example.password)}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <p className="font-medium">{example.role}</p>
+                                <p className="text-sm text-blue-600">{example.email}</p>
+                              </div>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTestCredentials(example.email, example.password);
+                                }}
+                              >
+                                Usar
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
               <CardDescription className="text-center">
                 Entre com seu email e senha para acessar o sistema
               </CardDescription>
