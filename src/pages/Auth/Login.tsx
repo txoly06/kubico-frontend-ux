@@ -14,7 +14,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, loginWithGoogle, loginWithFacebook } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -29,6 +29,22 @@ const Login = () => {
     
     if (success) {
       // Redirecionar para a página anterior ou dashboard
+      const origin = location.state?.from?.pathname || '/dashboard';
+      navigate(origin);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    const success = await loginWithGoogle();
+    if (success) {
+      const origin = location.state?.from?.pathname || '/dashboard';
+      navigate(origin);
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    const success = await loginWithFacebook();
+    if (success) {
       const origin = location.state?.from?.pathname || '/dashboard';
       navigate(origin);
     }
@@ -131,13 +147,23 @@ const Login = () => {
               </div>
               
               <div className="flex gap-2 mt-6">
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleGoogleLogin}
+                  disabled={isLoading}
+                >
                   <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
                     <path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z" fill="#4285f4"/>
                   </svg>
                   Google
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleFacebookLogin}
+                  disabled={isLoading}
+                >
                   <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
                     <path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z" fill="#1877f2"/>
                   </svg>

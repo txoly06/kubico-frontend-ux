@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -20,6 +19,8 @@ interface AuthContextType {
   logout: () => void;
   forgotPassword: (email: string) => Promise<boolean>;
   resetPassword: (password: string, confirmPassword: string) => Promise<boolean>;
+  loginWithGoogle: () => Promise<boolean>;
+  loginWithFacebook: () => Promise<boolean>;
 }
 
 interface RegisterData {
@@ -153,6 +154,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginWithGoogle = async (): Promise<boolean> => {
+    setIsLoading(true);
+    
+    try {
+      // Simulação da autenticação com Google
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const userData: User = {
+        id: 'g123',
+        name: 'João Silva',
+        email: 'joao.silva@gmail.com',
+        role: 'client',
+        avatar: 'https://lh3.googleusercontent.com/a/ACg8ocLKjOiAc...'
+      };
+      
+      setUser(userData);
+      localStorage.setItem('kubico_token', 'token_google_simulado');
+      localStorage.setItem('kubico_user', JSON.stringify(userData));
+      
+      toast.success('Login com Google realizado com sucesso!');
+      return true;
+    } catch (error) {
+      toast.error('Erro ao realizar login com Google');
+      console.error('Erro de login com Google:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWithFacebook = async (): Promise<boolean> => {
+    setIsLoading(true);
+    
+    try {
+      // Simulação da autenticação com Facebook
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const userData: User = {
+        id: 'f456',
+        name: 'Ana Santos',
+        email: 'ana.santos@facebook.com',
+        role: 'client',
+        avatar: 'https://platform-lookaside.fbsbx.com/platform/profilepic...'
+      };
+      
+      setUser(userData);
+      localStorage.setItem('kubico_token', 'token_facebook_simulado');
+      localStorage.setItem('kubico_user', JSON.stringify(userData));
+      
+      toast.success('Login com Facebook realizado com sucesso!');
+      return true;
+    } catch (error) {
+      toast.error('Erro ao realizar login com Facebook');
+      console.error('Erro de login com Facebook:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const value = {
     user,
     isAuthenticated: !!user,
@@ -161,7 +222,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    loginWithGoogle,
+    loginWithFacebook
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
