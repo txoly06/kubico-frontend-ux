@@ -12,9 +12,11 @@ import PropertyList from './components/PropertyList';
 import EmptyResults from './components/EmptyResults';
 import Pagination from './components/Pagination';
 import { propertiesData } from './data/propertiesData';
+import { useToast } from "@/hooks/use-toast";
 
 const Properties = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortOption, setSortOption] = useState('relevance');
   const [properties, setProperties] = useState(propertiesData);
@@ -59,17 +61,19 @@ const Properties = () => {
   }, [sortOption]);
 
   const handleApplyFilters = (filters: any) => {
+    setIsLoading(true);
+    
     // Count active filters
     let count = 0;
     
-    if (filters.propertyTypes.length > 0) count++;
-    if (filters.priceRange[0] !== 300000 || filters.priceRange[1] !== 3000000) count++;
-    if (filters.bedrooms.length > 0) count++;
-    if (filters.bathrooms.length > 0) count++;
-    if (filters.parkingSpaces.length > 0) count++;
-    if (filters.areaRange[0] !== 30 || filters.areaRange[1] !== 500) count++;
-    if (filters.features.length > 0) count++;
-    if (filters.neighborhoods.length > 0) count++;
+    if (filters.propertyTypes && filters.propertyTypes.length > 0) count++;
+    if (filters.priceRange && (filters.priceRange[0] !== 300000 || filters.priceRange[1] !== 3000000)) count++;
+    if (filters.bedrooms && filters.bedrooms.length > 0) count++;
+    if (filters.bathrooms && filters.bathrooms.length > 0) count++;
+    if (filters.parkingSpaces && filters.parkingSpaces.length > 0) count++;
+    if (filters.areaRange && (filters.areaRange[0] !== 30 || filters.areaRange[1] !== 500)) count++;
+    if (filters.features && filters.features.length > 0) count++;
+    if (filters.neighborhoods && filters.neighborhoods.length > 0) count++;
     
     setActiveFilterCount(count);
     
@@ -77,7 +81,7 @@ const Properties = () => {
     let filteredProperties = [...propertiesData];
     
     // Filter by property type
-    if (filters.propertyTypes.length > 0) {
+    if (filters.propertyTypes && filters.propertyTypes.length > 0) {
       filteredProperties = filteredProperties.filter(property => 
         filters.propertyTypes.some((type: string) => 
           property.type.toLowerCase().includes(type.toLowerCase())
@@ -86,12 +90,14 @@ const Properties = () => {
     }
     
     // Filter by price range
-    filteredProperties = filteredProperties.filter(property => 
-      property.price >= filters.priceRange[0] && property.price <= filters.priceRange[1]
-    );
+    if (filters.priceRange) {
+      filteredProperties = filteredProperties.filter(property => 
+        property.price >= filters.priceRange[0] && property.price <= filters.priceRange[1]
+      );
+    }
     
     // Filter by bedrooms
-    if (filters.bedrooms.length > 0) {
+    if (filters.bedrooms && filters.bedrooms.length > 0) {
       filteredProperties = filteredProperties.filter(property => 
         filters.bedrooms.includes(property.bedrooms) || 
         (filters.bedrooms.includes(5) && property.bedrooms >= 5)
@@ -99,16 +105,58 @@ const Properties = () => {
     }
     
     // Filter by area
-    filteredProperties = filteredProperties.filter(property => 
-      property.area >= filters.areaRange[0] && property.area <= filters.areaRange[1]
-    );
+    if (filters.areaRange) {
+      filteredProperties = filteredProperties.filter(property => 
+        property.area >= filters.areaRange[0] && property.area <= filters.areaRange[1]
+      );
+    }
+
+    // Sort filtered properties
+    switch (sortOption) {
+      case 'price-asc':
+        filteredProperties.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        filteredProperties.sort((a, b) => b.price - a.price);
+        break;
+      case 'newest':
+        filteredProperties.sort((a, b) => (a.newProperty === b.newProperty) ? 0 : a.newProperty ? -1 : 1);
+        break;
+      case 'bedrooms':
+        filteredProperties.sort((a, b) => b.bedrooms - a.bedrooms);
+        break;
+      case 'area':
+        filteredProperties.sort((a, b) => b.area - a.area);
+        break;
+      default:
+        // By relevance (featured first)
+        filteredProperties.sort((a, b) => (a.featured === b.featured) ? 0 : a.featured ? -1 : 1);
+    }
     
-    setProperties(filteredProperties);
+    setTimeout(() => {
+      setProperties(filteredProperties);
+      setIsLoading(false);
+      
+      toast({
+        title: "Filtros aplicados",
+        description: `${filteredProperties.length} imóveis encontrados com os filtros selecionados.`,
+      });
+    }, 800);
   };
 
   const handleClearFilters = () => {
+    setIsLoading(true);
     setActiveFilterCount(0);
-    setProperties(propertiesData);
+    
+    setTimeout(() => {
+      setProperties(propertiesData);
+      setIsLoading(false);
+      
+      toast({
+        title: "Filtros removidos",
+        description: "Todos os filtros foram removidos e a lista completa de imóveis foi restaurada.",
+      });
+    }, 500);
   };
 
   const handlePropertySelect = (propertyId: string) => {
@@ -128,33 +176,6 @@ const Properties = () => {
     
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-grow pt-24 pb-16">
-          <div className="container mx-auto px-4">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-              
-              <div className="h-12 bg-gray-200 rounded mb-8"></div>
-              
-              <div className="h-10 bg-gray-200 rounded mb-6"></div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {Array(8).fill(0).map((_, index) => (
-                  <div key={index} className="bg-gray-200 rounded-xl h-64"></div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -182,7 +203,7 @@ const Properties = () => {
           />
           
           <PropertiesControls 
-            propertiesCount={properties.length}
+            propertiesCount={isLoading ? 0 : properties.length}
             sortOption={sortOption}
             setSortOption={setSortOption}
             viewMode={viewMode}
@@ -191,18 +212,18 @@ const Properties = () => {
           
           {/* Property listings */}
           {viewMode === 'grid' ? (
-            <PropertyGrid properties={properties} />
+            <PropertyGrid properties={properties} isLoading={isLoading} />
           ) : (
-            <PropertyList properties={properties} />
+            <PropertyList properties={properties} isLoading={isLoading} />
           )}
           
           {/* Empty state when no properties match filters */}
-          {properties.length === 0 && (
+          {!isLoading && properties.length === 0 && (
             <EmptyResults onClearFilters={handleClearFilters} />
           )}
           
           {/* Pagination */}
-          {properties.length > 0 && (
+          {!isLoading && properties.length > 0 && (
             <Pagination />
           )}
         </div>

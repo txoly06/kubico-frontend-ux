@@ -37,6 +37,7 @@ const PropertiesControls: React.FC<PropertiesControlsProps> = ({
             onChange={(e) => setSortOption(e.target.value)}
             className="appearance-none bg-white border border-gray-200 rounded-lg py-2 pl-10 pr-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-kubico-blue/20 focus:border-kubico-blue"
             aria-label="Ordenar imóveis por"
+            id="sortOptions"
           >
             <option value="relevance">Relevância</option>
             <option value="price-asc">Menor Preço</option>

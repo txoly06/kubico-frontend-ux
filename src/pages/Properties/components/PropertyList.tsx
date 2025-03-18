@@ -3,13 +3,25 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import LoadingState from '@/components/ui/LoadingState';
 import { Property } from '../data/propertiesData';
 
 interface PropertyListProps {
   properties: Property[];
+  isLoading?: boolean;
 }
 
-const PropertyList: React.FC<PropertyListProps> = ({ properties }) => {
+const PropertyList: React.FC<PropertyListProps> = ({ properties, isLoading }) => {
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {Array(4).fill(0).map((_, index) => (
+          <LoadingState key={index} variant="card" />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {properties.map((property) => (
