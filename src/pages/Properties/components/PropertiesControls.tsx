@@ -3,6 +3,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LayoutGrid, LayoutList, MapPin, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface PropertiesControlsProps {
   propertiesCount: number;
@@ -32,21 +39,23 @@ const PropertiesControls: React.FC<PropertiesControlsProps> = ({
       <div className="flex flex-wrap items-center gap-4">
         {/* Sort options */}
         <div className="relative">
-          <select
-            value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
-            className="appearance-none bg-white border border-gray-200 rounded-lg py-2 pl-10 pr-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-kubico-blue/20 focus:border-kubico-blue"
-            aria-label="Ordenar imóveis por"
-            id="sortOptions"
-          >
-            <option value="relevance">Relevância</option>
-            <option value="price-asc">Menor Preço</option>
-            <option value="price-desc">Maior Preço</option>
-            <option value="newest">Mais Recentes</option>
-            <option value="bedrooms">Mais Quartos</option>
-            <option value="area">Maior Área</option>
-          </select>
-          <ArrowUpDown className="absolute left-3 top-2.5 h-4 w-4 text-gray-500 pointer-events-none" />
+          <Select value={sortOption} onValueChange={setSortOption}>
+            <SelectTrigger 
+              className="appearance-none bg-white border border-gray-200 rounded-lg py-2 pl-10 pr-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-kubico-blue/20 focus:border-kubico-blue min-w-[180px]"
+              aria-label="Ordenar imóveis por"
+            >
+              <ArrowUpDown className="absolute left-3 top-2.5 h-4 w-4 text-gray-500 pointer-events-none" />
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="relevance">Relevância</SelectItem>
+              <SelectItem value="price-asc">Menor Preço</SelectItem>
+              <SelectItem value="price-desc">Maior Preço</SelectItem>
+              <SelectItem value="newest">Mais Recentes</SelectItem>
+              <SelectItem value="bedrooms">Mais Quartos</SelectItem>
+              <SelectItem value="area">Maior Área</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         
         {/* View toggle */}

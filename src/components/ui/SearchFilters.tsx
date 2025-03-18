@@ -78,7 +78,7 @@ const SearchFilters = () => {
                 <SelectValue placeholder="Tipo de Imóvel" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os tipos</SelectItem>
+                <SelectItem value="all">Todos os tipos</SelectItem>
                 <SelectItem value="apartment">Apartamento</SelectItem>
                 <SelectItem value="house">Casa</SelectItem>
                 <SelectItem value="commercial">Comercial</SelectItem>
@@ -115,7 +115,7 @@ const SearchFilters = () => {
                 <SelectValue placeholder="Faixa de Preço" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Qualquer preço</SelectItem>
+                <SelectItem value="any">Qualquer preço</SelectItem>
                 {purpose === 'buy' ? (
                   <>
                     <SelectItem value="0-500000">Até R$ 500.000</SelectItem>

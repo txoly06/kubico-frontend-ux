@@ -20,6 +20,14 @@ const PropertyGrid: React.FC<PropertyGridProps> = ({ properties, isLoading }) =>
     );
   }
 
+  if (properties.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Nenhum imóvel encontrado com os filtros selecionados.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
       {properties.map((property) => (
