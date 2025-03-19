@@ -96,7 +96,7 @@ const Dashboard = () => {
           ? <AgentDashboard activeTab={activeTab} /> 
           : null;
       case 'messages':
-        return <ClientDashboard activeTab={activeTab} />;
+        return <ClientDashboard activeTab={activeTab} userType={userType} />;
       case 'settings':
         return userType === 'admin' 
           ? <AdminDashboard activeTab={activeTab} /> 

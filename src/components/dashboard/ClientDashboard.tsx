@@ -6,12 +6,14 @@ import { Input } from '@/components/ui/input';
 import { MessageSquare, Search, Send } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { UserType } from '@/components/ui/UserDashboard';
 
 interface ClientDashboardProps {
   activeTab: string;
+  userType?: UserType;
 }
 
-const ClientDashboard: React.FC<ClientDashboardProps> = ({ activeTab }) => {
+const ClientDashboard: React.FC<ClientDashboardProps> = ({ activeTab, userType }) => {
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState('');
   const [message, setMessage] = useState('');
