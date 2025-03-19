@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
@@ -96,7 +95,7 @@ const Dashboard = () => {
           ? <AgentDashboard activeTab={activeTab} /> 
           : null;
       case 'messages':
-        return <ClientDashboard activeTab={activeTab} userType={userType} />;
+        return <ClientDashboard activeTab={activeTab} userType={userType} />; // Now correctly typed
       case 'settings':
         return userType === 'admin' 
           ? <AdminDashboard activeTab={activeTab} /> 
