@@ -98,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('kubico_token', 'token_simulado');
         localStorage.setItem('kubico_user', JSON.stringify(userData));
         
-        toast.success(`Login realizado com sucesso como ${userData.role}!`);
+        toast.success(`Login realizado com sucesso como ${userData.role === 'client' ? 'Cliente' : userData.role === 'agent' ? 'Corretor' : 'Administrador'}!`);
         return true;
       } else if (email === 'usuario@exemplo.com' && password === 'senha123') {
         // Manter o usuário padrão original para compatibilidade

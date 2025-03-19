@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import DashboardPropertiesList from '@/components/ui/DashboardPropertiesList';
@@ -10,22 +11,13 @@ import DashboardAnalytics from '@/components/ui/DashboardAnalytics';
 import UserDashboard, { UserType } from '@/components/ui/UserDashboard';
 import { Suspense, lazy } from 'react';
 import LoadingState from '@/components/ui/LoadingState';
+import { useAuth } from '@/contexts/AuthContext';
+import ClientDashboard from '@/components/dashboard/ClientDashboard';
+import AgentDashboard from '@/components/dashboard/AgentDashboard';
+import AdminDashboard from '@/components/dashboard/AdminDashboard';
 
 // Import usando lazy loading para otimização
 const NotificationsPanel = lazy(() => import('@/components/ui/NotificationsPanel'));
-
-// Dados de exemplo do usuário
-const userData = {
-  name: 'Ana Silva',
-  email: 'ana.silva@email.com',
-  avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-  role: 'Cliente',
-  joinedAt: '2022-06-15',
-  properties: 2,
-  favorites: 5,
-  contracts: 1,
-  notifications: 3
-};
 
 // Componente para o header do painel
 const DashboardHeader = ({ title, subtitle }: { title: string, subtitle: string }) => (
@@ -36,15 +28,30 @@ const DashboardHeader = ({ title, subtitle }: { title: string, subtitle: string 
 );
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('properties');
-  const [userType, setUserType] = useState<UserType>('premium');
+  const { user } = useAuth();
+  const navigate = useNavigate();
   
-  // Função para alternar entre tipos de usuário (apenas para demonstração)
-  const toggleUserType = () => {
-    const types: UserType[] = ['regular', 'premium', 'agent', 'admin'];
-    const currentIndex = types.indexOf(userType);
-    const nextIndex = (currentIndex + 1) % types.length;
-    setUserType(types[nextIndex]);
+  const [activeTab, setActiveTab] = useState('properties');
+  // Mapear o papel do usuário para o tipo de usuário no componente
+  const userType: UserType = user?.role === 'admin' 
+    ? 'admin' 
+    : user?.role === 'agent' 
+      ? 'agent' 
+      : user?.role === 'client' && user?.id === '1' 
+        ? 'premium' 
+        : 'regular';
+  
+  // Dados de exemplo do usuário
+  const userData = {
+    name: user?.name || 'Usuário',
+    email: user?.email || 'usuario@exemplo.com',
+    avatar: user?.avatar || 'https://randomuser.me/api/portraits/women/44.jpg',
+    role: user?.role === 'client' ? 'Cliente' : user?.role === 'agent' ? 'Corretor' : 'Administrador',
+    joinedAt: '2022-06-15',
+    properties: 2,
+    favorites: 5,
+    contracts: 1,
+    notifications: 3
   };
   
   // Função simulada para fechar o painel de notificações
@@ -57,7 +64,7 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'properties':
-        return <DashboardPropertiesList />;
+        return <DashboardPropertiesList userType={userType} />;
       case 'favorites':
         return <DashboardFavorites />;
       case 'contracts':
@@ -72,6 +79,28 @@ const Dashboard = () => {
             <NotificationsPanel onClose={handleCloseNotifications} />
           </Suspense>
         );
+      case 'clients':
+        return userType === 'agent' || userType === 'admin' 
+          ? <AgentDashboard activeTab={activeTab} /> 
+          : null;
+      case 'users':
+        return userType === 'admin' 
+          ? <AdminDashboard activeTab={activeTab} /> 
+          : null;
+      case 'business':
+        return userType === 'admin' 
+          ? <AdminDashboard activeTab={activeTab} /> 
+          : null;
+      case 'calendar':
+        return userType === 'agent' 
+          ? <AgentDashboard activeTab={activeTab} /> 
+          : null;
+      case 'messages':
+        return <ClientDashboard activeTab={activeTab} />;
+      case 'settings':
+        return userType === 'admin' 
+          ? <AdminDashboard activeTab={activeTab} /> 
+          : null;
       default:
         return (
           <div className="bg-white rounded-xl p-8 shadow-sm">
@@ -88,17 +117,6 @@ const Dashboard = () => {
       
       <main className="flex-grow pt-8 pb-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={toggleUserType}
-              className="bg-kubico-blue text-white px-4 py-2 rounded-lg text-sm hover:bg-kubico-blue/90 transition-colors"
-            >
-              Modo: {userType === 'regular' ? 'Usuário Regular' : 
-                     userType === 'premium' ? 'Usuário Premium' : 
-                     userType === 'agent' ? 'Corretor' : 'Administrador'}
-            </button>
-          </div>
-          
           <div className="flex flex-col md:flex-row gap-8">
             {/* Sidebar do Dashboard */}
             <UserDashboard 
@@ -145,6 +163,42 @@ const Dashboard = () => {
                 <DashboardHeader 
                   title="Notificações" 
                   subtitle="Veja todas as suas notificações e alertas"
+                />
+              )}
+              {activeTab === 'clients' && (
+                <DashboardHeader 
+                  title="Meus Clientes" 
+                  subtitle="Gerencie seus clientes e leads"
+                />
+              )}
+              {activeTab === 'users' && (
+                <DashboardHeader 
+                  title="Usuários" 
+                  subtitle="Gerencie os usuários da plataforma"
+                />
+              )}
+              {activeTab === 'business' && (
+                <DashboardHeader 
+                  title="Imobiliárias" 
+                  subtitle="Gerencie as imobiliárias parceiras"
+                />
+              )}
+              {activeTab === 'calendar' && (
+                <DashboardHeader 
+                  title="Agenda" 
+                  subtitle="Gerencie suas visitas e compromissos"
+                />
+              )}
+              {activeTab === 'messages' && (
+                <DashboardHeader 
+                  title="Mensagens" 
+                  subtitle="Conversas com clientes e corretores"
+                />
+              )}
+              {activeTab === 'settings' && (
+                <DashboardHeader 
+                  title="Configurações" 
+                  subtitle="Configure os parâmetros da plataforma"
                 />
               )}
               
