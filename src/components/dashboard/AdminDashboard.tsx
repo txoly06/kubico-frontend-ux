@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,9 +24,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { UserType } from '@/components/ui/UserDashboard';
 
 interface AdminDashboardProps {
   activeTab: string;
+  userType: UserType;
 }
 
 interface User {
@@ -52,7 +53,7 @@ interface Business {
   logo?: string;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeTab }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeTab, userType }) => {
   const [users, setUsers] = useState<User[]>([
     {
       id: '1',
@@ -196,7 +197,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeTab }) => {
     }
   };
   
-  // Componente para gerenciar usuários
   if (activeTab === 'users') {
     return (
       <Card className="border border-gray-100">
@@ -376,7 +376,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeTab }) => {
     );
   }
   
-  // Componente para gerenciar imobiliárias
   if (activeTab === 'business') {
     return (
       <Card className="border border-gray-100">
@@ -549,7 +548,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeTab }) => {
     );
   }
   
-  // Componente para configurações
   if (activeTab === 'settings') {
     return (
       <Card className="border border-gray-100">
@@ -758,7 +756,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ activeTab }) => {
                       </div>
                       <div>
                         <h4 className="font-medium">Google Analytics</h4>
-                        <p className="text-sm text-gray-500">Rastreamento de estatísticas do site</p>
+                        <p className="text-sm text-gray-500">Rastreamento de estat��sticas do site</p>
                       </div>
                     </div>
                     <Switch id="analyticsIntegration" defaultChecked />

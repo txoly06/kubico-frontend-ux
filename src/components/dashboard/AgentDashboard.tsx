@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,9 +20,11 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ClientFormDialog from '@/components/forms/ClientFormDialog';
 import { Calendar } from '@/components/ui/calendar';
+import { UserType } from '@/components/ui/UserDashboard';
 
 interface AgentDashboardProps {
   activeTab: string;
+  userType: UserType;
 }
 
 interface Appointment {
@@ -50,7 +51,7 @@ interface Client {
   avatar?: string;
 }
 
-const AgentDashboard: React.FC<AgentDashboardProps> = ({ activeTab }) => {
+const AgentDashboard: React.FC<AgentDashboardProps> = ({ activeTab, userType }) => {
   const [clients, setClients] = useState<Client[]>([
     {
       id: '1',
@@ -192,7 +193,6 @@ const AgentDashboard: React.FC<AgentDashboardProps> = ({ activeTab }) => {
            appDate.getFullYear() === selectedDate.getFullYear();
   });
   
-  // Exibir componente adequado com base na aba ativa
   if (activeTab === 'clients') {
     return (
       <Card className="border border-gray-100">
