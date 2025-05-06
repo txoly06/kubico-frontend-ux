@@ -1,22 +1,19 @@
 
 import React from 'react';
-import { UserType } from '@/components/ui/UserDashboard';
 import { MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ClientDashboardProps {
   activeTab: string;
-  userType: UserType;
+  userType?: string; // Making userType optional since we don't use it in this component
 }
 
-const ClientDashboard: React.FC<ClientDashboardProps> = ({ activeTab, userType }) => {
+const ClientDashboard: React.FC<ClientDashboardProps> = ({ activeTab }) => {
   return (
     <div className="bg-white rounded-xl p-8 shadow-sm">
       <h3 className="text-lg font-medium mb-4">Mensagens</h3>
       <p className="text-kubico-gray-medium mb-4">
-        {userType === 'agent' 
-          ? 'Gerencie suas conversas com clientes e outros corretores.' 
-          : 'Visualize e responda mensagens de corretores e outros usuários.'}
+        Visualize e responda mensagens de corretores e outros usuários.
       </p>
       
       <div className="p-6 bg-gray-50 rounded-lg text-center">
