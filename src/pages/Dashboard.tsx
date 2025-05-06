@@ -16,7 +16,7 @@ import ClientDashboard from '@/components/dashboard/ClientDashboard';
 import AgentDashboard from '@/components/dashboard/AgentDashboard';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
 
-// Import usando lazy loading para otimização
+// Import using lazy loading for optimization
 const NotificationsPanel = lazy(() => import('@/components/ui/NotificationsPanel'));
 
 // Componente para o header do painel
